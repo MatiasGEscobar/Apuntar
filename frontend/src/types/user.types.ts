@@ -21,12 +21,24 @@ export interface User {
   status: UserStatus;
   dni?: string;
   clu?: string;
+  cluExpirationDate?: string;
+  cuil?: string;
   phone?: string;
+  address?: string;
   city?: string;
   province?: string;
+  postalCode?: string;
+  dniFrontUrl?: string;
+  dniBackUrl?: string;
+  cluFrontUrl?: string;
+  cluBackUrl?: string;
+  twoFactorEnabled?: boolean;
   rating?: number;
   totalSales?: number;
   totalPurchases?: number;
+  rejectionReason?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

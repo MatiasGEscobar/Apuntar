@@ -47,6 +47,9 @@ export interface Product {
   };
   views: number;
   favorites: number;
+  rejectionReason?: string;  
+  moderatedBy?: string;      
+  moderatedAt?: string;   
   createdAt: string;
   updatedAt: string;
 }
