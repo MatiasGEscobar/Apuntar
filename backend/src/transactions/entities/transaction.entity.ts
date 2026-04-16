@@ -59,18 +59,25 @@ export class Transaction {
   @Column({ type: 'enum', enum: TransactionStatus, default: TransactionStatus.PENDING })
   status: TransactionStatus;
 
+  // Mercado Pago
   @Column({ nullable: true })
   mercadoPagoPaymentId: string;
 
   @Column({ nullable: true })
+  mercadoPagoPreferenceId: string;
+
+  // Escrow
+  @Column({ nullable: true })
   escrowReleaseDate: Date;
 
+  // Notas
   @Column({ type: 'text', nullable: true })
   buyerNotes: string;
 
   @Column({ type: 'text', nullable: true })
   sellerNotes: string;
 
+  // Ratings
   @Column({ type: 'int', nullable: true })
   buyerRating: number; // 1-5
 
@@ -83,8 +90,15 @@ export class Transaction {
   @Column({ type: 'text', nullable: true })
   sellerReview: string;
 
+  // Metadata
   @Column({ type: 'timestamp', nullable: true })
   completedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  cancelledAt: Date;
+
+  @Column({ type: 'text', nullable: true })
+  cancellationReason: string;
 
   @CreateDateColumn()
   createdAt: Date;
