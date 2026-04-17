@@ -6,6 +6,7 @@ import { productsService } from '../../../lib/products';
 import { authService } from '../../../lib/auth';
 import { Product } from '../../../types/product.types';
 import { ArrowLeft, MapPin, Star, Eye, ShoppingCart, AlertTriangle, Phone, Mail } from 'lucide-react';
+import { transactionsService } from '@/src/lib/transactions';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -34,14 +35,19 @@ export default function ProductDetailPage() {
     }
   };
 
-  const handleBuy = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    // Aquí iría la lógica de compra
-    alert('Funcionalidad de compra en desarrollo');
-  };
+  const handleBuy = async () => {
+  if (!isAuthenticated) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const transaction = await transactionsService.create(params.id as string);
+    router.push(`/checkout/${transaction.id}`);
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Error al iniciar compra');
+  }
+};
 
   if (loading) {
     return (
