@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import { Shield } from 'lucide-react';
+import ImageUpload from '../../../components/upload/ImageUpload';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [dniImages, setDniImages] = useState<string[]>([]);
+  const [cluImages, setCluImages] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,20 +24,41 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError('');
+      setLoading(true);
 
-    try {
-      await authService.register(formData);
-      router.push('/products');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse');
-    } finally {
-      setLoading(false);
-    }
-  };
+      // Validar que se subieron los documentos
+      if (dniImages.length !== 2) {
+        setError('Debes subir el DNI (frente y reverso)');
+        setLoading(false);
+        return;
+      }
+
+      if (cluImages.length !== 2) {
+        setError('Debes subir el CLU (frente y reverso)');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const registerData = {
+          ...formData,
+          dniFrontUrl: dniImages[0],
+          dniBackUrl: dniImages[1],
+          cluFrontUrl: cluImages[0],
+          cluBackUrl: cluImages[1],
+        };
+
+        await authService.register(registerData);
+        router.push('/products');
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Error al registrarse');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -164,6 +188,35 @@ export default function RegisterPage() {
               <option value={UserRole.BUYER}>Comprador</option>
               <option value={UserRole.SELLER}>Vendedor</option>
             </select>
+          </div>
+
+          {/* Upload de Documentos */}
+          <div className="space-y-6">
+            <h3 className="text-white font-semibold text-lg">Documentación Requerida</h3>
+            
+            <div>
+              <label className="block text-slate-300 text-sm font-medium mb-2">
+                DNI (Frente y Reverso)
+              </label>
+              <ImageUpload
+                onImagesChange={setDniImages}
+                maxImages={2}
+                currentImages={dniImages}
+                folder="documents"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-300 text-sm font-medium mb-2">
+                CLU (Frente y Reverso)
+              </label>
+              <ImageUpload
+                onImagesChange={setCluImages}
+                maxImages={2}
+                currentImages={cluImages}
+                folder="documents"
+              />
+            </div>
           </div>
 
           <button

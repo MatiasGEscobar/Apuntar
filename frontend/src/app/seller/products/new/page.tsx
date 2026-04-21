@@ -7,6 +7,7 @@ import { authService } from '../../../../lib/auth';
 import { ProductCategory, ProductCondition } from '../../../../types/product.types';
 import { UserRole } from '../../../../types/user.types';
 import { Shield, ArrowLeft } from 'lucide-react';
+import ImageUpload from '../../../../components/upload/ImageUpload';
 
 const PROVINCIAS = [
   'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
@@ -299,6 +300,17 @@ export default function NewProductPage() {
                   placeholder="Ej: 3500"
                 />
               </div>
+            </div>
+
+            {/* Imágenes */}
+            <div className="space-y-4">
+              <h3 className="text-white font-semibold text-lg">Imágenes del Producto</h3>
+                <ImageUpload
+                onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
+                maxImages={10}
+                currentImages={formData.images}
+                folder="products"
+                />
             </div>
 
             {/* Botones */}

@@ -39,4 +39,21 @@ export class RegisterDto {
 
   @IsEnum(UserRole)
   role: UserRole;
+
+  // URLs de documentos
+  @IsOptional()
+  @IsString()
+  dniFrontUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  dniBackUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  cluFrontUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  cluBackUrl?: string;
 }
