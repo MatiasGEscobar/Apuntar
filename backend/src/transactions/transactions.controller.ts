@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApprovedUserGuard } from '../auth/guards/approved-user.guard'; // ← AGREGAR
 import { TransactionStatus } from './entities/transaction.entity';
 
 @Controller('transactions')
@@ -18,6 +19,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @UseGuards(ApprovedUserGuard) // ← AGREGAR - Solo usuarios aprobados
   create(@Body('productId') productId: string, @Request() req) {
     return this.transactionsService.create(productId, req.user.id);
   }
@@ -38,6 +40,7 @@ export class TransactionsController {
   }
 
   @Patch(':id/confirm-payment')
+  @UseGuards(ApprovedUserGuard) // ← AGREGAR
   confirmPayment(
     @Param('id') id: string,
     @Body('paymentId') paymentId: string,
@@ -53,6 +56,7 @@ export class TransactionsController {
   }
 
   @Patch(':id/confirm-delivery')
+  @UseGuards(ApprovedUserGuard) // ← AGREGAR
   confirmDelivery(@Param('id') id: string, @Request() req) {
     return this.transactionsService.confirmDelivery(id, req.user.id);
   }

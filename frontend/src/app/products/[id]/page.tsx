@@ -41,6 +41,14 @@ export default function ProductDetailPage() {
     return;
   }
 
+  const user = authService.getCurrentUser();
+  
+  if (user?.status !== 'approved') {
+    alert('Debes tener tu cuenta aprobada para poder comprar. Por favor, sube tus documentos y espera la verificación.');
+    router.push('/profile/documents');
+    return;
+  }
+
   try {
     const transaction = await transactionsService.create(params.id as string);
     router.push(`/checkout/${transaction.id}`);
@@ -48,6 +56,7 @@ export default function ProductDetailPage() {
     alert(error.response?.data?.message || 'Error al iniciar compra');
   }
 };
+
 
   if (loading) {
     return (

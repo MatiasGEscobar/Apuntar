@@ -44,12 +44,18 @@ export default function NewProductPage() {
     postalCode: '',
   });
 
-  useEffect(() => {
-    const user = authService.getCurrentUser();
-    if (!user || user.role !== UserRole.SELLER) {
-      router.push('/login');
-    }
-  }, []);
+useEffect(() => {
+  const user = authService.getCurrentUser();
+  if (!user || user.role !== UserRole.SELLER) {
+    router.push('/login');
+    return;
+  }
+
+  if (user.status !== 'approved') {
+    alert('Debes tener tu cuenta aprobada para publicar productos.');
+    router.push('/profile/documents');
+  }
+}, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -15,6 +15,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { ApprovedUserGuard } from '../auth/guards/approved-user.guard'; // ← AGREGAR
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
@@ -23,7 +24,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedUserGuard) // ← AGREGAR ApprovedUserGuard
   create(@Body() createProductDto: CreateProductDto, @Request() req) {
     return this.productsService.create(createProductDto, req.user.id);
   }
@@ -49,7 +50,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedUserGuard) // ← AGREGAR
   update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -59,7 +60,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedUserGuard) // ← AGREGAR
   remove(@Param('id') id: string, @Request() req) {
     return this.productsService.remove(id, req.user.id);
   }

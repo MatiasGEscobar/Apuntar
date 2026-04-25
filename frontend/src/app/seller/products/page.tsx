@@ -7,6 +7,7 @@ import { authService } from '../../../lib/auth';
 import { Product, ProductStatus } from '../../../types/product.types';
 import { UserRole } from '../../../types/user.types';
 import { Plus, Package } from 'lucide-react';
+import VerificationBanner from '../../../components/VerificationBanner';
 
 export default function SellerProductsPage() {
   const router = useRouter();
@@ -96,6 +97,8 @@ export default function SellerProductsPage() {
 
       {/* Contenido */}
       <div className="max-w-7xl mx-auto px-4 py-8">
+  <VerificationBanner />
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-white">Gestión de Publicaciones</h2>
           <button
@@ -164,6 +167,7 @@ export default function SellerProductsPage() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

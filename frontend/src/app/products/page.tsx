@@ -5,6 +5,7 @@ import { productsService } from '../../lib/products';
 import { Product, ProductCategory } from '../../types/product.types';
 import { Search, Filter, MapPin, Star, Eye, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import VerificationBanner from '../../components/VerificationBanner';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -64,6 +65,8 @@ export default function ProductsPage() {
 
       {/* Contenido */}
       <div className="max-w-7xl mx-auto px-4 py-8">
+  <VerificationBanner />
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Filtros */}
         <div className="mb-8">
           <div className="flex gap-4 mb-6">
@@ -90,6 +93,7 @@ export default function ProductsPage() {
               <option value={ProductCategory.CARABINA}>Carabinas</option>
             </select>
           </div>
+        </div>
         </div>
 
         {/* Grid de productos */}
