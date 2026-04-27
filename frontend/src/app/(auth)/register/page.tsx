@@ -5,12 +5,9 @@ import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import { Shield } from 'lucide-react';
-import ImageUpload from '../../../components/upload/ImageUpload';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [dniImages, setDniImages] = useState<string[]>([]);
-  const [cluImages, setCluImages] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,41 +21,21 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError('');
-      setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-      // Validar que se subieron los documentos
-      if (dniImages.length !== 2) {
-        setError('Debes subir el DNI (frente y reverso)');
-        setLoading(false);
-        return;
-      }
-
-      if (cluImages.length !== 2) {
-        setError('Debes subir el CLU (frente y reverso)');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const registerData = {
-          ...formData,
-          dniFrontUrl: dniImages[0],
-          dniBackUrl: dniImages[1],
-          cluFrontUrl: cluImages[0],
-          cluBackUrl: cluImages[1],
-        };
-
-        await authService.register(registerData);
-        router.push('/products');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Error al registrarse');
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      await authService.register(formData);
+      // Redirigir a subir documentos después del registro
+      router.push('/profile/documents');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al registrarse');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -67,7 +44,7 @@ export default function RegisterPage() {
           <div className="flex justify-center mb-4">
             <Shield className="w-16 h-16 text-amber-500" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Apuntar</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">ArmaLegal.ar</h1>
           <p className="text-slate-400">Crear Cuenta</p>
         </div>
 
@@ -81,7 +58,7 @@ export default function RegisterPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-300 text-sm font-medium mb-2">
-                Nombre
+                Nombre *
               </label>
               <input
                 type="text"
@@ -94,7 +71,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-slate-300 text-sm font-medium mb-2">
-                Apellido
+                Apellido *
               </label>
               <input
                 type="text"
@@ -108,7 +85,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-slate-300 text-sm font-medium mb-2">
-              Email
+              Email *
             </label>
             <input
               type="email"
@@ -121,7 +98,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-slate-300 text-sm font-medium mb-2">
-              Contraseña (mín. 8 caracteres, mayúscula, minúscula y número)
+              Contraseña (mín. 8 caracteres, mayúscula, minúscula y número) *
             </label>
             <input
               type="password"
@@ -136,7 +113,7 @@ export default function RegisterPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-300 text-sm font-medium mb-2">
-                DNI
+                DNI *
               </label>
               <input
                 type="text"
@@ -151,7 +128,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-slate-300 text-sm font-medium mb-2">
-                CLU (Credencial de Legítimo Usuario)
+                CLU (Credencial de Legítimo Usuario) *
               </label>
               <input
                 type="text"
@@ -178,7 +155,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-slate-300 text-sm font-medium mb-2">
-              Tipo de Cuenta
+              Tipo de Cuenta *
             </label>
             <select
               value={formData.role}
@@ -190,33 +167,11 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {/* Upload de Documentos */}
-          <div className="space-y-6">
-            <h3 className="text-white font-semibold text-lg">Documentación Requerida</h3>
-            
-            <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                DNI (Frente y Reverso)
-              </label>
-              <ImageUpload
-                onImagesChange={setDniImages}
-                maxImages={2}
-                currentImages={dniImages}
-                folder="documents"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                CLU (Frente y Reverso)
-              </label>
-              <ImageUpload
-                onImagesChange={setCluImages}
-                maxImages={2}
-                currentImages={cluImages}
-                folder="documents"
-              />
-            </div>
+          <div className="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-xl p-4">
+            <p className="text-blue-200 text-sm">
+              <strong>Nota:</strong> Después del registro, deberás subir tus documentos (DNI y CLU) 
+              para que un administrador verifique tu cuenta. Una vez aprobado, podrás comprar o vender productos.
+            </p>
           </div>
 
           <button
@@ -234,6 +189,15 @@ export default function RegisterPage() {
             </a>
           </p>
         </form>
+
+        <div className="mt-8 p-4 bg-slate-900 rounded-lg border border-amber-600">
+          <div className="flex gap-2 items-start">
+            <Shield className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-300">
+              Esta plataforma cumple con todas las regulaciones del RENAR. Se requiere CLU vigente y verificación de identidad.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

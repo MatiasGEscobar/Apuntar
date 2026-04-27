@@ -153,6 +153,45 @@ export default function AdminUsersPage() {
                       <p className="text-white font-semibold text-sm">{user.clu}</p>
                     </div>
                   </div>
+                  {user.dniFrontUrl && (
+                    <div className="mt-4">
+                      <p className="text-slate-400 text-sm mb-2">Documentos:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        
+                        <a  href={user.dniFrontUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 underline"
+                        >
+                          Ver DNI Frente
+                        </a>
+                        
+                        <a  href={user.dniBackUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 underline"
+                        >
+                          Ver DNI Reverso
+                        </a>
+                        
+                        <a  href={user.cluFrontUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 underline"
+                        >
+                          Ver CLU Frente
+                        </a>
+                        
+                        <a  href={user.cluBackUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 underline"
+                        >
+                          Ver CLU Reverso
+                        </a>
+                      </div>
+                    </div>
+                  )}
 
                   {user.rejectionReason && (
                     <div className="bg-red-900 bg-opacity-20 border border-red-600 rounded-lg p-3 mb-4">
@@ -162,46 +201,6 @@ export default function AdminUsersPage() {
                     </div>
                   )}
                 </div>
-
-                {user.dniFrontUrl && (
-  <div className="mt-4">
-    <p className="text-slate-400 text-sm mb-2">Documentos:</p>
-    <div className="grid grid-cols-2 gap-2">
-      
-      <a  href={user.dniFrontUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-blue-400 hover:text-blue-300 underline"
-      >
-        Ver DNI Frente
-      </a>
-      
-      <a  href={user.dniBackUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-blue-400 hover:text-blue-300 underline"
-      >
-        Ver DNI Reverso
-      </a>
-      
-      <a  href={user.cluFrontUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-blue-400 hover:text-blue-300 underline"
-      >
-        Ver CLU Frente
-      </a>
-      
-      <a  href={user.cluBackUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-blue-400 hover:text-blue-300 underline"
-      >
-        Ver CLU Reverso
-      </a>
-    </div>
-  </div>
-)}
 
                 {user.status === UserStatus.PENDING && (
                   <div className="flex gap-3">
