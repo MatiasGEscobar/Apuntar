@@ -5,6 +5,8 @@ import {
   Param, 
   Body,
   UseGuards,
+  Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,12 +31,28 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // ← AGREGAR ESTE MÉTODO
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateData: Partial<any>,
+    @Request() req,
+  ) {
+    // Solo el propio usuario o admin puede actualizar
+    if (req.user.id !== id && req.user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('No tienes permiso para actualizar este usuario');
+    }
+
+    return this.usersService.update(id, updateData);
+  }
+
   @Patch(':id/approve')
   @Roles(UserRole.ADMIN)
-  async approve(@Param('id') id: string) {
+  async approve(@Param('id') id: string, @Request() req) {
     return this.usersService.update(id, { 
       status: UserStatus.APPROVED,
       verifiedAt: new Date(),
+      verifiedBy: req.user.id,
     });
   }
 
