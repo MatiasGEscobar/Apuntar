@@ -13,11 +13,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole, UserStatus } from './entities/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService,  private readonly notificationsService: NotificationsService) {}
 
   @Get()
   @Roles(UserRole.ADMIN)
@@ -49,22 +50,32 @@ export class UsersController {
   @Patch(':id/approve')
   @Roles(UserRole.ADMIN)
   async approve(@Param('id') id: string, @Request() req) {
-    return this.usersService.update(id, { 
+    const user = await this.usersService.update(id, { 
       status: UserStatus.APPROVED,
       verifiedAt: new Date(),
       verifiedBy: req.user.id,
     });
+  
+      // ← ENVIAR EMAIL
+    await this.notificationsService.sendUserApprovedEmail(user);
+
+    return user;
   }
 
   @Patch(':id/reject')
   @Roles(UserRole.ADMIN)
   async reject(@Param('id') id: string, @Body('reason') reason: string) {
-    return this.usersService.update(id, { 
+    const user = await this.usersService.update(id, { 
       status: UserStatus.REJECTED,
       rejectionReason: reason,
     });
+     // ← ENVIAR EMAIL
+    await this.notificationsService.sendUserRejectedEmail(user, reason);
+
+    return user;
   }
 
+  
   @Patch(':id/suspend')
   @Roles(UserRole.ADMIN)
   async suspend(@Param('id') id: string, @Body('reason') reason: string) {

@@ -18,10 +18,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApprovedUserGuard } from '../auth/guards/approved-user.guard'; // ← AGREGAR
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService, private readonly notificationsService: NotificationsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, ApprovedUserGuard) // ← AGREGAR ApprovedUserGuard
@@ -68,18 +69,27 @@ export class ProductsController {
   @Patch(':id/approve')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  approve(@Param('id') id: string, @Request() req) {
-    return this.productsService.approve(id, req.user.id);
+  async approve(@Param('id') id: string, @Request() req) {
+    const product = await this.productsService.approve(id, req.user.id);
+
+    await this.notificationsService.sendProductApprovedEmail(product, product.seller);
+
+    return product;
   }
 
   @Patch(':id/reject')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  reject(
+  async reject(
     @Param('id') id: string,
     @Body('reason') reason: string,
     @Request() req,
   ) {
-    return this.productsService.reject(id, req.user.id, reason);
+    const product = await this.productsService.reject(id, req.user.id, reason);
+
+    // ← ENVIAR EMAIL
+    await this.notificationsService.sendProductRejectedEmail(product, product.seller, reason);
+
+    return product;
   }
 }

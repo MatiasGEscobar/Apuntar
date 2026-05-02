@@ -4,11 +4,12 @@ import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
 import { ProductsModule } from '../products/products.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Transaction]),
-    ProductsModule,
+    ProductsModule, NotificationsModule
   ],
   controllers: [TransactionsController],
   providers: [TransactionsService],

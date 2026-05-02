@@ -12,11 +12,12 @@ import { TransactionsService } from './transactions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApprovedUserGuard } from '../auth/guards/approved-user.guard'; // ← AGREGAR
 import { TransactionStatus } from './entities/transaction.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(private readonly transactionsService: TransactionsService, private readonly notificationsService: NotificationsService) {}
 
   @Post()
   @UseGuards(ApprovedUserGuard) // ← AGREGAR - Solo usuarios aprobados
@@ -41,24 +42,34 @@ export class TransactionsController {
 
   @Patch(':id/confirm-payment')
   @UseGuards(ApprovedUserGuard) // ← AGREGAR
-  confirmPayment(
+  async confirmPayment(
     @Param('id') id: string,
     @Body('paymentId') paymentId: string,
     @Body('preferenceId') preferenceId: string,
     @Request() req,
   ) {
-    return this.transactionsService.updateStatus(
+    const transaction = await this.transactionsService.updateStatus(
       id,
       TransactionStatus.ESCROW,
       req.user.id,
       { paymentId, preferenceId }
     );
+
+    // ← ENVIAR EMAIL
+    await this.notificationsService.sendNewPurchaseEmail(transaction);
+
+    return transaction;
   }
 
   @Patch(':id/confirm-delivery')
   @UseGuards(ApprovedUserGuard) // ← AGREGAR
-  confirmDelivery(@Param('id') id: string, @Request() req) {
-    return this.transactionsService.confirmDelivery(id, req.user.id);
+  async confirmDelivery(@Param('id') id: string, @Request() req) {
+    const transaction = await this.transactionsService.confirmDelivery(id, req.user.id);
+
+    // ← ENVIAR EMAIL
+    await this.notificationsService.sendTransactionCompletedEmail(transaction);
+
+    return transaction;
   }
 
   @Patch(':id/cancel')
