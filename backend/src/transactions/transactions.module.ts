@@ -5,6 +5,7 @@ import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
 import { ProductsModule } from '../products/products.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ProductsModule, NotificationsModule
   ],
   controllers: [TransactionsController],
-  providers: [TransactionsService],
+  providers: [TransactionsService, NotificationsService],
   exports: [TransactionsService, TypeOrmModule],
 })
 export class TransactionsModule {}

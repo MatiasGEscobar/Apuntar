@@ -474,7 +474,7 @@ export class NotificationsService {
       return { success: true, messageId: info.messageId };
     } catch (error) {
       console.error('❌ Error enviando email:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Error desconocido' };
     }
   }
 }
