@@ -161,4 +161,21 @@ export class TransactionsService {
 
     return this.updateStatus(id, TransactionStatus.COMPLETED, buyerId);
   }
+
+  // Método interno para actualizaciones del sistema (webhooks)
+async updateStatusBySystem(
+  id: string,
+  status: TransactionStatus,
+  metadata?: any,
+): Promise<Transaction> {
+  const transaction = await this.findOne(id);
+  const updateData: any = { status };
+
+  if (status === TransactionStatus.ESCROW) {
+    updateData.mercadoPagoPaymentId = metadata?.paymentId;
+  }
+
+  await this.transactionsRepository.update(id, updateData);
+  return this.findOne(id);
+}
 }

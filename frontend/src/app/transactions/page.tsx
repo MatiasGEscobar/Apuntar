@@ -21,6 +21,26 @@ export default function TransactionsPage() {
     loadTransactions();
   }, []);
 
+  // Manejar retorno desde Mercado Pago
+useEffect(() => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const status = searchParams.get('status');
+  const transactionId = searchParams.get('id');
+
+  if (status && transactionId) {
+    if (status === 'success') {
+      alert('✅ ¡Pago exitoso! Tu dinero está en escrow. Coordiná la entrega con el vendedor.');
+    } else if (status === 'failure') {
+      alert('❌ El pago fue rechazado. Podés intentarlo nuevamente.');
+    } else if (status === 'pending') {
+      alert('⏳ Tu pago está pendiente de acreditación. Te notificaremos cuando se confirme.');
+    }
+
+    // Limpiar los query params de la URL sin recargar la página
+    window.history.replaceState({}, '', '/transactions');
+  }
+}, []);
+
   const loadTransactions = async () => {
     try {
       setLoading(true);

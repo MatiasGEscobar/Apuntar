@@ -33,31 +33,31 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePayment = async () => {
-    if (!transaction) return;
+const handlePayment = async () => {
+  if (!transaction) return;
 
-    setProcessing(true);
+  setProcessing(true);
 
-    try {
-      // MOCK: Simular pago exitoso con Mercado Pago
-      // En producción, aquí irías a Mercado Pago
-      const mockPaymentId = `MP-${Date.now()}`;
-      const mockPreferenceId = `PREF-${Date.now()}`;
+  try {
+    const currentUser = authService.getCurrentUser();
 
-      await transactionsService.confirmPayment(
-        transaction.id,
-        mockPaymentId,
-        mockPreferenceId
-      );
+    const preference = await transactionsService.createPaymentPreference(
+      transaction.id,
+      currentUser?.email || '',
+      transaction.product.name,
+    );
 
-      alert('¡Pago confirmado! El dinero está en escrow. Ahora puedes coordinar la entrega con el vendedor.');
-      router.push(`/transactions/${transaction.id}`);
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al procesar el pago');
-    } finally {
-      setProcessing(false);
-    }
-  };
+    // Redirigir a Mercado Pago
+    // En pruebas usamos sandboxInitPoint, en producción initPoint
+    const redirectUrl = preference.sandboxInitPoint || preference.initPoint;
+    window.location.href = redirectUrl;
+
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Error al iniciar el pago');
+    setProcessing(false);
+  }
+  // No ponemos setProcessing(false) en el try porque el usuario es redirigido
+};
 
   if (loading) {
     return (
@@ -71,7 +71,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  const totalAmount = transaction.amount + transaction.buyerCommission;
+  const totalAmount = Number(transaction.amount) + Number(transaction.buyerCommission);
 
   return (
     <div className="min-h-screen bg-slate-900">
