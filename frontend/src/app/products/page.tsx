@@ -5,6 +5,7 @@ import { productsService } from '../../lib/products';
 import { Product, ProductCategory } from '../../types/product.types';
 import { Search, Filter, MapPin, Star, Eye, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { authService } from '../../lib/auth';
 import VerificationBanner from '../../components/VerificationBanner';
 
 export default function ProductsPage() {
@@ -13,8 +14,10 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
 
   useEffect(() => {
+    setCurrentUser(authService.getCurrentUser());
     loadProducts();
   }, [filterCategory, searchTerm]);
 
@@ -42,26 +45,66 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-slate-900">
       {/* Navbar */}
       <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-white">Apuntar</h1>
-            <div className="flex gap-4">
+  <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-bold text-white">Apuntar</h1>
+      <div className="flex gap-4 items-center">
+        {currentUser ? (
+          // Usuario logueado
+          <>
+            <span className="text-slate-400 text-sm">
+              Hola, {currentUser.firstName}
+            </span>
+            {currentUser.role === 'admin' && (
               <button
-                onClick={() => router.push('/login')}
-                className="text-slate-400 hover:text-white transition"
+                onClick={() => router.push('/admin/users')}
+                className="text-slate-400 hover:text-white transition text-sm"
               >
-                Iniciar Sesión
+                Admin
               </button>
+            )}
+            {currentUser.role === 'seller' && (
               <button
-                onClick={() => router.push('/register')}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition"
+                onClick={() => router.push('/seller/products')}
+                className="text-slate-400 hover:text-white transition text-sm"
               >
-                Registrarse
+                Mis productos
               </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+            )}
+            <button
+              onClick={() => router.push('/transactions')}
+              className="text-slate-400 hover:text-white transition text-sm"
+            >
+              Mis transacciones
+            </button>
+            <button
+              onClick={() => authService.logout()}
+              className="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg transition text-sm"
+            >
+              Cerrar sesión
+            </button>
+          </>
+        ) : (
+          // Usuario no logueado
+          <>
+            <button
+              onClick={() => router.push('/login')}
+              className="text-slate-400 hover:text-white transition"
+            >
+              Iniciar Sesión
+            </button>
+            <button
+              onClick={() => router.push('/register')}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition"
+            >
+              Registrarse
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+</nav>
 
       {/* Contenido */}
       <div className="max-w-7xl mx-auto px-4 py-8">
