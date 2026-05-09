@@ -5,41 +5,31 @@ import { useRouter } from 'next/navigation';
 import { transactionsService } from '../../lib/transactions';
 import { authService } from '../../lib/auth';
 import { Transaction, TransactionStatus } from '../../types/transaction.types';
-import { Package, Eye, MessageSquare, CheckCircle } from 'lucide-react';
+import { Package, MessageSquare, Eye, ArrowLeft } from 'lucide-react';
+import Logo from '../../components/logo';
 
 export default function TransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
+  const [currentUser] = useState(authService.getCurrentUser());
 
   useEffect(() => {
-    if (!currentUser) {
-      router.push('/login');
-      return;
+    if (!currentUser) { router.push('/login'); return; }
+
+    // Manejar retorno desde Mercado Pago
+    const searchParams = new URLSearchParams(window.location.search);
+    const status = searchParams.get('status');
+    const transactionId = searchParams.get('id');
+    if (status && transactionId) {
+      if (status === 'success') alert('✅ ¡Pago exitoso! Tu dinero está en escrow.');
+      else if (status === 'failure') alert('❌ El pago fue rechazado. Podés intentarlo nuevamente.');
+      else if (status === 'pending') alert('⏳ Tu pago está pendiente de acreditación.');
+      window.history.replaceState({}, '', '/transactions');
     }
+
     loadTransactions();
   }, []);
-
-  // Manejar retorno desde Mercado Pago
-useEffect(() => {
-  const searchParams = new URLSearchParams(window.location.search);
-  const status = searchParams.get('status');
-  const transactionId = searchParams.get('id');
-
-  if (status && transactionId) {
-    if (status === 'success') {
-      alert('✅ ¡Pago exitoso! Tu dinero está en escrow. Coordiná la entrega con el vendedor.');
-    } else if (status === 'failure') {
-      alert('❌ El pago fue rechazado. Podés intentarlo nuevamente.');
-    } else if (status === 'pending') {
-      alert('⏳ Tu pago está pendiente de acreditación. Te notificaremos cuando se confirme.');
-    }
-
-    // Limpiar los query params de la URL sin recargar la página
-    window.history.replaceState({}, '', '/transactions');
-  }
-}, []);
 
   const loadTransactions = async () => {
     try {
@@ -53,114 +43,131 @@ useEffect(() => {
     }
   };
 
-  const getStatusBadge = (status: TransactionStatus) => {
-    const styles = {
-      [TransactionStatus.PENDING]: 'bg-yellow-600',
-      [TransactionStatus.ESCROW]: 'bg-blue-600',
-      [TransactionStatus.COMPLETED]: 'bg-green-600',
-      [TransactionStatus.CANCELLED]: 'bg-red-600',
-      [TransactionStatus.DISPUTED]: 'bg-orange-600',
-    };
-
-    const labels = {
-      [TransactionStatus.PENDING]: 'Pendiente',
-      [TransactionStatus.ESCROW]: 'En Escrow',
-      [TransactionStatus.COMPLETED]: 'Completada',
-      [TransactionStatus.CANCELLED]: 'Cancelada',
-      [TransactionStatus.DISPUTED]: 'En Disputa',
-    };
-
-    return (
-      <span className={`${styles[status]} text-white text-xs px-3 py-1 rounded-full`}>
-        {labels[status]}
-      </span>
-    );
+  const statusConfig: Record<TransactionStatus, { label: string; color: string; bg: string }> = {
+    [TransactionStatus.PENDING]:   { label: 'PENDIENTE',   color: 'text-yellow-400', bg: 'border-yellow-900/40 bg-yellow-950/10' },
+    [TransactionStatus.ESCROW]:    { label: 'EN ESCROW',   color: 'text-blue-400',   bg: 'border-blue-900/40 bg-blue-950/10' },
+    [TransactionStatus.COMPLETED]: { label: 'COMPLETADA',  color: 'text-green-400',  bg: 'border-green-900/40 bg-green-950/10' },
+    [TransactionStatus.CANCELLED]: { label: 'CANCELADA',   color: 'text-red-400',    bg: 'border-red-900/40 bg-red-950/10' },
+    [TransactionStatus.DISPUTED]:  { label: 'EN DISPUTA',  color: 'text-orange-400', bg: 'border-orange-900/40 bg-orange-950/10' },
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
+      <div className="w-8 h-8 border-2 border-[#333333] border-t-[#c9a227] rounded-full animate-spin" />
+      <p className="text-[#888888] font-rajdhani tracking-widest text-sm uppercase">Cargando transacciones...</p>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <nav className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-white">Mis Transacciones</h1>
-            <button
-              onClick={() => router.push('/products')}
-              className="text-slate-400 hover:text-white transition"
-            >
-              Ver Catálogo
-            </button>
-          </div>
+    <div className="min-h-screen bg-[#0a0a0a]">
+
+      {/* Navbar */}
+      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/products')}
+            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Ver catálogo
+          </button>
+          <Logo size="sm" />
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="border-b border-[#333333] bg-[#111111]">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-6 h-px bg-[#c9a227]" />
+            <span className="text-[#c9a227] text-xs tracking-[0.3em] uppercase font-rajdhani">
+              Operador: {currentUser?.firstName} {currentUser?.lastName}
+            </span>
+          </div>
+          <h1 className="font-tactical text-5xl text-[#e8e8e8] tracking-wide">
+            MIS TRANSACCIONES
+          </h1>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
         {transactions.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg">No tienes transacciones aún</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4 border border-[#333333]">
+            <Package className="w-12 h-12 text-[#333333]" />
+            <p className="text-[#888888] font-rajdhani tracking-widest text-sm uppercase">
+              No tenés transacciones aún
+            </p>
+            <button
+              onClick={() => router.push('/products')}
+              className="btn-tactical-outline text-sm py-2 px-6 mt-2"
+            >
+              VER CATÁLOGO
+            </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {transactions.map((transaction) => {
               const isBuyer = transaction.buyerId === currentUser?.id;
-              return (
-                <div key={transaction.id} className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-4">
-                      <div className="w-24 h-24 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {transaction.product.images?.[0] ? (
-                          <img src={transaction.product.images[0]} alt={transaction.product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="text-4xl">🔫</div>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-1">{transaction.product.name}</h3>
-                        <p className="text-slate-400 text-sm mb-2">{transaction.product.brand}</p>
-                        <div className="flex items-center gap-3 text-sm text-slate-400">
-                          <span>{isBuyer ? 'Comprando a' : 'Vendiendo a'}</span>
-                          <span className="text-white">
-                            {isBuyer 
-                              ? `${transaction.seller.firstName} ${transaction.seller.lastName}`
-                              : `${transaction.buyer.firstName} ${transaction.buyer.lastName}`
-                            }
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-white mb-2">
-                        ${transaction.amount.toLocaleString()}
-                      </div>
-                      {getStatusBadge(transaction.status)}
-                    </div>
-                  </div>
+              const status = statusConfig[transaction.status];
 
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => router.push(`/transactions/${transaction.id}`)}
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
-                    >
-                      {transaction.status === TransactionStatus.ESCROW ? (
-                        <>
-                          <MessageSquare className="w-4 h-4" />
-                          Ir al Chat
-                        </>
+              return (
+                <div
+                  key={transaction.id}
+                  className="border border-[#333333] bg-[#111111] hover:border-[#c9a227]/50 transition-colors"
+                >
+                  <div className="p-5 flex gap-5 items-start">
+
+                    {/* Imagen */}
+                    <div className="w-20 h-20 bg-[#1a1a1a] border border-[#333333] flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {transaction.product.images?.[0] ? (
+                        <img src={transaction.product.images[0]} alt={transaction.product.name} className="w-full h-full object-cover" />
                       ) : (
-                        <>
-                          <Eye className="w-4 h-4" />
-                          Ver Detalles
-                        </>
+                        <div className="text-2xl opacity-20">🔫</div>
                       )}
-                    </button>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <h3 className="font-tactical text-xl text-[#e8e8e8] tracking-wide truncate">
+                          {transaction.product.name}
+                        </h3>
+                        <span className={`font-tactical text-xs px-3 py-1 border flex-shrink-0 ${status.color} ${status.bg}`}>
+                          {status.label}
+                        </span>
+                      </div>
+
+                      <p className="text-[#888888] font-rajdhani text-sm mb-3">
+                        {transaction.product.brand} ·{' '}
+                        <span className="text-[#555555]">
+                          {isBuyer ? 'Comprando a' : 'Vendiendo a'}{' '}
+                        </span>
+                        <span className="text-[#888888]">
+                          {isBuyer
+                            ? `${transaction.seller.firstName} ${transaction.seller.lastName}`
+                            : `${transaction.buyer.firstName} ${transaction.buyer.lastName}`
+                          }
+                        </span>
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="font-tactical text-2xl text-[#c9a227]">
+                          ${Number(transaction.amount).toLocaleString('es-AR')}
+                          <span className="text-[#555555] text-sm font-rajdhani ml-1 font-normal">ARS</span>
+                        </span>
+
+                        <button
+                          onClick={() => router.push(`/transactions/${transaction.id}`)}
+                          className="btn-tactical text-xs py-2 px-4 flex items-center gap-2"
+                        >
+                          {transaction.status === TransactionStatus.ESCROW ? (
+                            <><MessageSquare className="w-3 h-3" /> IR AL CHAT</>
+                          ) : (
+                            <><Eye className="w-3 h-3" /> VER DETALLES</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

@@ -4,22 +4,23 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { productsService } from '../../../lib/products';
 import { authService } from '../../../lib/auth';
+import { transactionsService } from '../../../lib/transactions';
 import { Product } from '../../../types/product.types';
-import { ArrowLeft, MapPin, Star, Eye, ShoppingCart, AlertTriangle, Phone, Mail } from 'lucide-react';
-import { transactionsService } from '@/src/lib/transactions';
+import { ArrowLeft, MapPin, Star, Eye, ShoppingCart, AlertTriangle, Shield } from 'lucide-react';
+import Logo from '../../../components/logo';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [buying, setBuying] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     setIsAuthenticated(authService.isAuthenticated());
-    if (params.id) {
-      loadProduct(params.id as string);
-    }
+    if (params.id) loadProduct(params.id as string);
   }, [params.id]);
 
   const loadProduct = async (id: string) => {
@@ -28,7 +29,6 @@ export default function ProductDetailPage() {
       const data = await productsService.getById(id);
       setProduct(data);
     } catch (error) {
-      console.error('Error cargando producto:', error);
       router.push('/products');
     } finally {
       setLoading(false);
@@ -36,168 +36,206 @@ export default function ProductDetailPage() {
   };
 
   const handleBuy = async () => {
-  if (!isAuthenticated) {
-    router.push('/login');
-    return;
-  }
+    if (!isAuthenticated) { router.push('/login'); return; }
+    const user = authService.getCurrentUser();
+    if (user?.status !== 'approved') {
+      alert('Debés tener tu cuenta aprobada para comprar.');
+      router.push('/profile/documents');
+      return;
+    }
+    try {
+      setBuying(true);
+      const transaction = await transactionsService.create(params.id as string);
+      router.push(`/checkout/${transaction.id}`);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error al iniciar compra');
+    } finally {
+      setBuying(false);
+    }
+  };
 
-  const user = authService.getCurrentUser();
-  
-  if (user?.status !== 'approved') {
-    alert('Debes tener tu cuenta aprobada para poder comprar. Por favor, sube tus documentos y espera la verificación.');
-    router.push('/profile/documents');
-    return;
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
+      <div className="w-8 h-8 border-2 border-[#333333] border-t-[#c9a227] rounded-full animate-spin" />
+      <p className="text-[#888888] font-rajdhani tracking-widest text-sm uppercase">Cargando...</p>
+    </div>
+  );
 
-  try {
-    const transaction = await transactionsService.create(params.id as string);
-    router.push(`/checkout/${transaction.id}`);
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Error al iniciar compra');
-  }
-};
+  if (!product) return null;
 
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return null;
-  }
+  const totalWithCommission = product.price * 1.015;
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Navbar Simple */}
-      <nav className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-[#0a0a0a]">
+
+      {/* Navbar */}
+      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <button
             onClick={() => router.push('/products')}
-            className="text-slate-400 hover:text-white flex items-center gap-2"
+            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
             Volver al catálogo
           </button>
+          <Logo size="sm" />
         </div>
       </nav>
 
-      {/* Contenido */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Galería de imágenes */}
-          <div className="bg-slate-800 rounded-xl p-8 border border-slate-700">
-            <div className="h-96 bg-slate-700 flex items-center justify-center rounded-lg overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6 py-10">
+
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 mb-8 text-[#555555] font-rajdhani text-xs tracking-wider uppercase">
+          <span className="hover:text-[#c9a227] cursor-pointer transition-colors" onClick={() => router.push('/products')}>Catálogo</span>
+          <span>/</span>
+          <span className="text-[#888888]">{product.category}</span>
+          <span>/</span>
+          <span className="text-[#c9a227]">{product.name}</span>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-10">
+
+          {/* Galería */}
+          <div className="space-y-3">
+            <div className="aspect-square bg-[#111111] border border-[#333333] flex items-center justify-center overflow-hidden relative">
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={product.images[0]}
+                  src={product.images[selectedImage]}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="text-9xl">🔫</div>
+                <div className="text-9xl opacity-10">🔫</div>
               )}
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#c9a227]" />
             </div>
+
             {product.images && product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2 mt-4">
-                {product.images.slice(1, 5).map((img, idx) => (
-                  <div key={idx} className="h-20 bg-slate-700 rounded-lg overflow-hidden">
-                    <img src={img} alt={`${product.name} ${idx + 2}`} className="w-full h-full object-cover" />
-                  </div>
+              <div className="grid grid-cols-4 gap-2">
+                {product.images.slice(0, 4).map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`aspect-square overflow-hidden border transition-colors ${
+                      selectedImage === idx ? 'border-[#c9a227]' : 'border-[#333333] hover:border-[#555555]'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Información del producto */}
+          {/* Info */}
           <div className="space-y-6">
+
+            {/* Título y badge */}
             <div>
-              <div className="flex items-start justify-between mb-2">
-                <h1 className="text-3xl font-bold text-white">{product.name}</h1>
-                <span className="bg-amber-600 text-white text-sm px-3 py-1 rounded-lg">
-                  {product.condition === 'nuevo' ? 'Nuevo' : 'Usado'}
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h1 className="font-tactical text-4xl text-[#e8e8e8] tracking-wide leading-tight">
+                  {product.name}
+                </h1>
+                <span className={`font-tactical text-xs px-3 py-1.5 tracking-wider flex-shrink-0 ${
+                  product.condition === 'nuevo'
+                    ? 'bg-[#c9a227] text-[#0a0a0a]'
+                    : 'bg-[#333333] text-[#e8e8e8]'
+                }`}>
+                  {product.condition === 'nuevo' ? 'NUEVO' : 'USADO'}
                 </span>
               </div>
-              <p className="text-slate-400 text-lg">{product.brand} - {product.model}</p>
+              <p className="text-[#888888] font-rajdhani text-lg">
+                {product.brand} · {product.model}
+              </p>
             </div>
 
             {/* Precio */}
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-              <div className="text-4xl font-bold text-white mb-2">
-                ${(product.price / 1000).toFixed(0)}k ARS
+            <div className="border border-[#c9a227]/30 bg-[#c9a227]/5 p-5">
+              <div className="flex items-end gap-3 mb-2">
+                <span className="font-tactical text-5xl text-[#c9a227]">
+                  ${product.price.toLocaleString('es-AR')}
+                </span>
+                <span className="text-[#888888] font-rajdhani pb-1">ARS</span>
               </div>
-              <p className="text-slate-400 text-sm">+ Comisión 3% (comprador 1.5% + vendedor 1.5%)</p>
+              <p className="text-[#888888] font-rajdhani text-xs tracking-wide">
+                Total con comisión (1.5%): ${totalWithCommission.toLocaleString('es-AR', { maximumFractionDigits: 0 })} ARS
+              </p>
             </div>
 
-            {/* Especificaciones */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-                <p className="text-slate-400 text-sm mb-1">Categoría</p>
-                <p className="text-white font-semibold capitalize">{product.category}</p>
-              </div>
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-                <p className="text-slate-400 text-sm mb-1">Calibre</p>
-                <p className="text-white font-semibold">{product.caliber}</p>
-              </div>
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-                <p className="text-slate-400 text-sm mb-1">Ubicación</p>
-                <p className="text-white font-semibold text-sm">{product.city}, {product.province}</p>
-              </div>
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-                <p className="text-slate-400 text-sm mb-1">Vistas</p>
-                <p className="text-white font-semibold">{product.views}</p>
-              </div>
+            {/* Specs */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Categoría', value: product.category },
+                { label: 'Calibre', value: product.caliber },
+                { label: 'Número de serie', value: product.serialNumber || 'No especificado' },
+                { label: 'Vistas', value: `${product.views}` },
+              ].map((spec) => (
+                <div key={spec.label} className="bg-[#111111] border border-[#333333] p-3">
+                  <p className="text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-1">{spec.label}</p>
+                  <p className="text-[#e8e8e8] font-rajdhani font-semibold capitalize">{spec.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Ubicación */}
+            <div className="flex items-center gap-3 text-[#888888] font-rajdhani">
+              <MapPin className="w-4 h-4 text-[#c9a227]" />
+              <span>{product.city}, {product.province}</span>
             </div>
 
             {/* Vendedor */}
             {product.seller && (
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-                <p className="text-slate-400 text-sm mb-2">Vendedor</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-semibold">
-                      {product.seller.firstName} {product.seller.lastName}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-white font-semibold">{product.seller.rating || 0}</span>
-                      <span className="text-slate-400 text-sm">({product.seller.totalSales || 0} ventas)</span>
-                    </div>
+              <div className="border border-[#333333] bg-[#111111] p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-1">Vendedor</p>
+                  <p className="text-[#e8e8e8] font-rajdhani font-semibold">
+                    {product.seller.firstName} {product.seller.lastName}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1 justify-end">
+                    <Star className="w-4 h-4 text-[#c9a227] fill-[#c9a227]" />
+                    <span className="text-[#e8e8e8] font-rajdhani font-semibold">{product.seller.rating || 0}</span>
                   </div>
+                  <p className="text-[#888888] font-rajdhani text-xs">{product.seller.totalSales || 0} ventas</p>
                 </div>
               </div>
             )}
 
             {/* Descripción */}
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-              <h3 className="text-white font-semibold mb-3">Descripción</h3>
-              <p className="text-slate-300 leading-relaxed">{product.description}</p>
-            </div>
+            {product.description && (
+              <div>
+                <p className="text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-2">Descripción</p>
+                <p className="text-[#888888] font-rajdhani leading-relaxed">{product.description}</p>
+              </div>
+            )}
 
-            {/* Botón de compra */}
+            {/* Botón compra */}
             <button
               onClick={handleBuy}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2"
+              disabled={buying}
+              className="btn-tactical w-full text-center flex items-center justify-center gap-3 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ShoppingCart className="w-5 h-5" />
-              Iniciar Compra Segura
+              {buying ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-[#0a0a0a]/30 border-t-[#0a0a0a] rounded-full animate-spin" />
+                  PROCESANDO...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4" />
+                  INICIAR COMPRA SEGURA
+                </>
+              )}
             </button>
 
-            {/* Aviso legal */}
-            <div className="bg-amber-900 bg-opacity-20 border border-amber-600 rounded-xl p-4">
-              <div className="flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-200">
-                  <p className="font-semibold mb-1">Importante</p>
-                  <p>
-                    La entrega debe realizarse en persona con verificación de CLU vigente y DNI. 
-                    El pago permanece en escrow hasta la confirmación de entrega.
-                  </p>
-                </div>
-              </div>
+            {/* Aviso RENAR */}
+            <div className="border border-[#c9a227]/20 p-4 flex gap-3">
+              <AlertTriangle className="w-4 h-4 text-[#c9a227] flex-shrink-0 mt-0.5" />
+              <p className="text-[#888888] font-rajdhani text-xs leading-relaxed">
+                Entrega <strong className="text-[#e8e8e8]">presencial obligatoria</strong> con verificación de CLU vigente y DNI de ambas partes. 
+                Pago en escrow hasta confirmación de entrega.
+              </p>
             </div>
           </div>
         </div>

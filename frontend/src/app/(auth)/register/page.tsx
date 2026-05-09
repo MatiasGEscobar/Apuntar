@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
-import { Shield } from 'lucide-react';
+import Logo from '../../../components/logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,10 +25,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await authService.register(formData);
-      // Redirigir a subir documentos después del registro
       router.push('/profile/documents');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse');
@@ -37,167 +35,184 @@ export default function RegisterPage() {
     }
   };
 
+  const inputClass = "input-tactical";
+  const labelClass = "block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <Shield className="w-16 h-16 text-amber-500" />
+    <div className="min-h-screen bg-[#0a0a0a] bg-tactical-grid flex items-center justify-center p-6">
+
+      {/* Líneas decorativas de fondo */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-[#c9a227]/10 to-transparent" />
+        <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-[#c9a227]/10 to-transparent" />
+      </div>
+
+      <div className="w-full max-w-2xl relative">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <Logo size="md" />
+          <div className="text-right">
+            <div className="text-[#888888] font-rajdhani text-sm">¿Ya tenés cuenta?</div>
+            <a href="/login" className="text-[#c9a227] font-rajdhani text-sm tracking-wider hover:text-[#e8c547] transition-colors uppercase">
+              Iniciar sesión →
+            </a>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">ArmaLegal.ar</h1>
-          <p className="text-slate-400">Crear Cuenta</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Título */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-6 h-px bg-[#c9a227]" />
+            <span className="text-[#c9a227] text-xs tracking-[0.3em] uppercase font-rajdhani">
+              Nuevo operador
+            </span>
+          </div>
+          <h1 className="font-tactical text-4xl text-[#e8e8e8] tracking-wide">
+            CREAR CUENTA
+          </h1>
+        </div>
+
+        {/* Card principal */}
+        <div className="border border-[#333333] bg-[#111111] p-8">
+
           {error && (
-            <div className="bg-red-900 bg-opacity-20 border border-red-600 rounded-lg p-4">
-              <p className="text-red-200 text-sm">{error}</p>
+            <div className="mb-6 border border-red-800 bg-red-950/30 p-4 flex items-center gap-3">
+              <div className="w-1 self-stretch bg-red-500 flex-shrink-0" />
+              <p className="text-red-300 font-rajdhani text-sm">{error}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Nombre y Apellido */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Nombre *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className={inputClass}
+                  placeholder="Juan"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Apellido *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className={inputClass}
+                  placeholder="Pérez"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
             <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                Nombre *
-              </label>
+              <label className={labelClass}>Email *</label>
               <input
-                type="text"
+                type="email"
                 required
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={inputClass}
+                placeholder="usuario@email.com"
               />
             </div>
 
+            {/* Contraseña */}
             <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                Apellido *
-              </label>
+              <label className={labelClass}>Contraseña *</label>
               <input
-                type="text"
+                type="password"
                 required
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-slate-300 text-sm font-medium mb-2">
-              Email *
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-300 text-sm font-medium mb-2">
-              Contraseña (mín. 8 caracteres, mayúscula, minúscula y número) *
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                DNI *
-              </label>
-              <input
-                type="text"
-                required
-                pattern="\d{7,8}"
-                value={formData.dni}
-                onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                placeholder="12345678"
+                minLength={8}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className={inputClass}
+                placeholder="Mín. 8 caracteres, mayúscula, minúscula y número"
               />
             </div>
 
-            <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                CLU (Credencial de Legítimo Usuario) *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.clu}
-                onChange={(e) => setFormData({ ...formData, clu: e.target.value })}
-                className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                placeholder="CLU123456"
-              />
+            {/* DNI y CLU */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>DNI *</label>
+                <input
+                  type="text"
+                  required
+                  pattern="\d{7,8}"
+                  value={formData.dni}
+                  onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                  className={inputClass}
+                  placeholder="12345678"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>CLU *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.clu}
+                  onChange={(e) => setFormData({ ...formData, clu: e.target.value })}
+                  className={inputClass}
+                  placeholder="CLU123456"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-slate-300 text-sm font-medium mb-2">
-              Teléfono (opcional)
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-            />
-          </div>
+            {/* Teléfono y Tipo de cuenta */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Teléfono (opcional)</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className={inputClass}
+                  placeholder="+54 11 1234-5678"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Tipo de cuenta *</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                  className="input-tactical cursor-pointer"
+                >
+                  <option value={UserRole.BUYER}>Comprador</option>
+                  <option value={UserRole.SELLER}>Vendedor</option>
+                </select>
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-slate-300 text-sm font-medium mb-2">
-              Tipo de Cuenta *
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-              className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
+            {/* Aviso verificación */}
+            <div className="border border-[#c9a227]/30 bg-[#c9a227]/5 p-4 flex gap-3">
+              <div className="w-1 self-stretch bg-[#c9a227] flex-shrink-0" />
+              <p className="text-[#c9a227]/80 font-rajdhani text-sm leading-relaxed">
+                Después del registro deberás subir tu DNI y CLU para verificación. 
+                Una vez aprobado por un administrador podrás operar en la plataforma.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-tactical w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value={UserRole.BUYER}>Comprador</option>
-              <option value={UserRole.SELLER}>Vendedor</option>
-            </select>
-          </div>
-
-          <div className="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-xl p-4">
-            <p className="text-blue-200 text-sm">
-              <strong>Nota:</strong> Después del registro, deberás subir tus documentos (DNI y CLU) 
-              para que un administrador verifique tu cuenta. Una vez aprobado, podrás comprar o vender productos.
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-600 text-white py-4 rounded-xl font-semibold transition"
-          >
-            {loading ? 'Creando cuenta...' : 'Registrarse'}
-          </button>
-
-          <p className="text-center text-slate-400 text-sm">
-            ¿Ya tienes cuenta?{' '}
-            <a href="/login" className="text-amber-500 hover:text-amber-400">
-              Inicia sesión aquí
-            </a>
-          </p>
-        </form>
-
-        <div className="mt-8 p-4 bg-slate-900 rounded-lg border border-amber-600">
-          <div className="flex gap-2 items-start">
-            <Shield className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300">
-              Esta plataforma cumple con todas las regulaciones del RENAR. Se requiere CLU vigente y verificación de identidad.
-            </p>
-          </div>
+              {loading ? 'PROCESANDO...' : 'CREAR CUENTA'}
+            </button>
+          </form>
         </div>
+
+        {/* Footer */}
+        <p className="mt-6 text-center text-[#555555] font-rajdhani text-xs">
+          Plataforma regulada · RENAR · Argentina
+        </p>
       </div>
     </div>
   );

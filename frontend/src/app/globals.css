@@ -1,26 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-tactical-black: #0a0a0a;
+  --color-tactical-dark: #111111;
+  --color-tactical-gray: #1a1a1a;
+  --color-tactical-steel: #2a2a2a;
+  --color-tactical-border: #333333;
+  --color-tactical-gold: #c9a227;
+  --color-tactical-gold-light: #e8c547;
+  --color-tactical-gold-dark: #a07d1a;
+  --color-tactical-white: #e8e8e8;
+  --color-tactical-muted: #888888;
+
+  --font-bebas: 'Bebas Neue', cursive;
+  --font-rajdhani: 'Rajdhani', sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #0a0a0a;
+  color: #e8e8e8;
+  font-family: 'Rajdhani', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #111111; }
+::-webkit-scrollbar-thumb { background: #c9a227; }
+::selection { background: #c9a227; color: #0a0a0a; }
+
+.font-tactical {
+  font-family: 'Bebas Neue', cursive;
+  letter-spacing: 0.05em;
+}
+
+.bg-tactical-grid {
+  background-image:
+    linear-gradient(rgba(201, 162, 39, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 162, 39, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.btn-tactical {
+  background: #c9a227;
+  color: #0a0a0a;
+  font-family: 'Bebas Neue', cursive;
+  letter-spacing: 0.1em;
+  font-size: 1rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.btn-tactical:hover {
+  background: #e8c547;
+  transform: translateY(-1px);
+}
+
+.btn-tactical-outline {
+  background: transparent;
+  color: #c9a227;
+  font-family: 'Bebas Neue', cursive;
+  letter-spacing: 0.1em;
+  font-size: 1rem;
+  padding: 0.75rem 2rem;
+  border: 1px solid #c9a227;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.btn-tactical-outline:hover {
+  background: rgba(201, 162, 39, 0.1);
+}
+
+.card-tactical {
+  background: #111111;
+  border: 1px solid #333333;
+  transition: border-color 0.2s ease;
+}
+
+.card-tactical:hover {
+  border-color: #c9a227;
+}
+
+.input-tactical {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  color: #e8e8e8;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-tactical:focus {
+  border-color: #c9a227;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+}
+
+.input-tactical::placeholder {
+  color: #888888;
 }
