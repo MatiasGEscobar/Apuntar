@@ -6,7 +6,8 @@ import { productsService } from '../../../../lib/products';
 import { authService } from '../../../../lib/auth';
 import { ProductCategory, ProductCondition } from '../../../../types/product.types';
 import { UserRole } from '../../../../types/user.types';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import Logo from '../../../../components/logo';
 import ImageUpload from '../../../../components/upload/ImageUpload';
 
 const PROVINCIAS = [
@@ -23,53 +24,40 @@ const CALIBRES = [
   '.223 Remington', '.308 Winchester', '7.62x39mm'
 ];
 
+const labelClass = "block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2";
+const sectionTitle = "font-tactical text-lg tracking-wider text-[#c9a227] mb-4 pb-2 border-b border-[#333333]";
+
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const [formData, setFormData] = useState({
-    name: '',
-    category: ProductCategory.PISTOLA,
-    brand: '',
-    model: '',
-    caliber: '',
-    serialNumber: '',
-    condition: ProductCondition.NUEVO,
-    price: '',
-    description: '',
-    images: [] as string[],
-    city: '',
-    province: '',
-    postalCode: '',
+    name: '', category: ProductCategory.PISTOLA, brand: '', model: '',
+    caliber: '', serialNumber: '', condition: ProductCondition.NUEVO,
+    price: '', description: '', images: [] as string[],
+    city: '', province: '', postalCode: '',
   });
 
-useEffect(() => {
-  const user = authService.getCurrentUser();
-  if (!user || user.role !== UserRole.SELLER) {
-    router.push('/login');
-    return;
-  }
-
-  if (user.status !== 'approved') {
-    alert('Debes tener tu cuenta aprobada para publicar productos.');
-    router.push('/profile/documents');
-  }
-}, []);
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (!user || user.role !== UserRole.SELLER) { router.push('/login'); return; }
+    if (user.status !== 'approved') {
+      alert('Debés tener tu cuenta aprobada para publicar productos.');
+      router.push('/profile/documents');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await productsService.create({
         ...formData,
         price: parseFloat(formData.price),
         images: formData.images.length > 0 ? formData.images : ['https://via.placeholder.com/400x300?text=Arma'],
       });
-
-      alert('Producto creado exitosamente. Está pendiente de aprobación.');
+      alert('Producto creado. Pendiente de aprobación.');
       router.push('/seller/products');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al crear producto');
@@ -78,65 +66,62 @@ useEffect(() => {
     }
   };
 
+  const set = (field: string, value: any) => setFormData(prev => ({ ...prev, [field]: value }));
+
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-[#0a0a0a]">
+
       {/* Navbar */}
-      <nav className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <button
             onClick={() => router.push('/seller/products')}
-            className="text-slate-400 hover:text-white flex items-center gap-2"
+            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Volver a mis productos
+            <ArrowLeft className="w-4 h-4" />
+            Mis productos
           </button>
+          <Logo size="sm" />
         </div>
       </nav>
 
-      {/* Contenido */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-          <div className="text-center mb-8">
-            <Shield className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-white mb-2">Publicar Producto</h1>
-            <p className="text-slate-400">Complete todos los campos requeridos</p>
+      {/* Header */}
+      <div className="border-b border-[#333333] bg-[#111111]">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-6 h-px bg-[#c9a227]" />
+            <span className="text-[#c9a227] text-xs tracking-[0.3em] uppercase font-rajdhani">Nueva publicación</span>
           </div>
+          <h1 className="font-tactical text-5xl text-[#e8e8e8] tracking-wide">PUBLICAR PRODUCTO</h1>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-900 bg-opacity-20 border border-red-600 rounded-lg p-4">
-                <p className="text-red-200 text-sm">{error}</p>
-              </div>
-            )}
+      <div className="max-w-4xl mx-auto px-6 py-8">
 
-            {/* Información Básica */}
+        {error && (
+          <div className="mb-6 border border-red-800 bg-red-950/30 p-4 flex items-center gap-3">
+            <div className="w-1 self-stretch bg-red-500 flex-shrink-0" />
+            <p className="text-red-300 font-rajdhani text-sm">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+
+          {/* Información básica */}
+          <div className="border border-[#333333] bg-[#111111] p-6">
+            <h3 className={sectionTitle}>INFORMACIÓN BÁSICA</h3>
             <div className="space-y-4">
-              <h3 className="text-white font-semibold text-lg">Información Básica</h3>
-
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Nombre del Producto *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  placeholder="Ej: Bersa Thunder 380"
-                />
+                <label className={labelClass}>Nombre del producto *</label>
+                <input type="text" required value={formData.name}
+                  onChange={(e) => set('name', e.target.value)}
+                  className="input-tactical" placeholder="Ej: Bersa Thunder 380" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Categoría *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  >
+                  <label className={labelClass}>Categoría *</label>
+                  <select value={formData.category} onChange={(e) => set('category', e.target.value)} className="input-tactical cursor-pointer">
                     <option value={ProductCategory.PISTOLA}>Pistola</option>
                     <option value={ProductCategory.REVOLVER}>Revólver</option>
                     <option value={ProductCategory.RIFLE}>Rifle</option>
@@ -144,16 +129,9 @@ useEffect(() => {
                     <option value={ProductCategory.CARABINA}>Carabina</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Condición *
-                  </label>
-                  <select
-                    value={formData.condition}
-                    onChange={(e) => setFormData({ ...formData, condition: e.target.value as ProductCondition })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  >
+                  <label className={labelClass}>Condición *</label>
+                  <select value={formData.condition} onChange={(e) => set('condition', e.target.value)} className="input-tactical cursor-pointer">
                     <option value={ProductCondition.NUEVO}>Nuevo</option>
                     <option value={ProductCondition.USADO_EXCELENTE}>Usado - Excelente</option>
                     <option value={ProductCondition.USADO_BUENO}>Usado - Bueno</option>
@@ -162,189 +140,117 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Marca *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                    placeholder="Ej: Bersa"
-                  />
+                  <label className={labelClass}>Marca *</label>
+                  <input type="text" required value={formData.brand}
+                    onChange={(e) => set('brand', e.target.value)}
+                    className="input-tactical" placeholder="Ej: Bersa" />
                 </div>
-
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Modelo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                    placeholder="Ej: Thunder 380"
-                  />
+                  <label className={labelClass}>Modelo *</label>
+                  <input type="text" required value={formData.model}
+                    onChange={(e) => set('model', e.target.value)}
+                    className="input-tactical" placeholder="Ej: Thunder 380" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Calibre *
-                  </label>
-                  <select
-                    value={formData.caliber}
-                    onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
-                    required
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  >
+                  <label className={labelClass}>Calibre *</label>
+                  <select value={formData.caliber} onChange={(e) => set('caliber', e.target.value)} required className="input-tactical cursor-pointer">
                     <option value="">Seleccionar...</option>
-                    {CALIBRES.map(cal => (
-                      <option key={cal} value={cal}>{cal}</option>
-                    ))}
+                    {CALIBRES.map(cal => <option key={cal} value={cal}>{cal}</option>)}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Número de Serie *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.serialNumber}
-                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                    placeholder="Ej: BT380-2024-001"
-                  />
+                  <label className={labelClass}>Número de serie *</label>
+                  <input type="text" required value={formData.serialNumber}
+                    onChange={(e) => set('serialNumber', e.target.value)}
+                    className="input-tactical" placeholder="Ej: BT380-2024-001" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Precio (ARS) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="1000"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  placeholder="450000"
-                />
+                <label className={labelClass}>Precio (ARS) *</label>
+                <input type="number" required min="0" step="1000" value={formData.price}
+                  onChange={(e) => set('price', e.target.value)}
+                  className="input-tactical" placeholder="450000" />
               </div>
 
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Descripción (mínimo 20 caracteres) *
-                </label>
-                <textarea
-                  required
-                  minLength={20}
-                  rows={5}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  placeholder="Describa el estado, características y cualquier detalle relevante del arma..."
-                />
+                <label className={labelClass}>Descripción * (mínimo 20 caracteres)</label>
+                <textarea required minLength={20} rows={4} value={formData.description}
+                  onChange={(e) => set('description', e.target.value)}
+                  className="input-tactical resize-none"
+                  placeholder="Describa el estado, características y cualquier detalle relevante..." />
               </div>
             </div>
+          </div>
 
-            {/* Ubicación */}
-            <div className="space-y-4">
-              <h3 className="text-white font-semibold text-lg">Ubicación</h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Provincia *
-                  </label>
-                  <select
-                    value={formData.province}
-                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                    required
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {PROVINCIAS.map(prov => (
-                      <option key={prov} value={prov}>{prov}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Ciudad *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                    placeholder="Ej: Resistencia"
-                  />
-                </div>
-              </div>
-
+          {/* Ubicación */}
+          <div className="border border-[#333333] bg-[#111111] p-6">
+            <h3 className={sectionTitle}>UBICACIÓN</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Código Postal (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                  className="w-full bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:border-amber-500 focus:outline-none"
-                  placeholder="Ej: 3500"
-                />
+                <label className={labelClass}>Provincia *</label>
+                <select value={formData.province} onChange={(e) => set('province', e.target.value)} required className="input-tactical cursor-pointer">
+                  <option value="">Seleccionar...</option>
+                  {PROVINCIAS.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Ciudad *</label>
+                <input type="text" required value={formData.city}
+                  onChange={(e) => set('city', e.target.value)}
+                  className="input-tactical" placeholder="Ej: Resistencia" />
+              </div>
+              <div>
+                <label className={labelClass}>Código postal (opcional)</label>
+                <input type="text" value={formData.postalCode}
+                  onChange={(e) => set('postalCode', e.target.value)}
+                  className="input-tactical" placeholder="Ej: 3500" />
               </div>
             </div>
+          </div>
 
-            {/* Imágenes */}
-            <div className="space-y-4">
-              <h3 className="text-white font-semibold text-lg">Imágenes del Producto</h3>
-                <ImageUpload
-                onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
-                maxImages={10}
-                currentImages={formData.images}
-                folder="products"
-                />
-            </div>
+          {/* Imágenes */}
+          <div className="border border-[#333333] bg-[#111111] p-6">
+            <h3 className={sectionTitle}>IMÁGENES DEL PRODUCTO</h3>
+            <ImageUpload
+              onImagesChange={(urls) => set('images', urls)}
+              maxImages={10}
+              currentImages={formData.images}
+              folder="products"
+            />
+          </div>
 
-            {/* Botones */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => router.push('/seller/products')}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-semibold transition"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-600 text-white py-4 rounded-xl font-semibold transition"
-              >
-                {loading ? 'Publicando...' : 'Publicar Producto'}
-              </button>
-            </div>
+          {/* Aviso */}
+          <div className="border border-[#c9a227]/20 bg-[#c9a227]/5 p-4 flex gap-3">
+            <div className="w-1 self-stretch bg-[#c9a227] flex-shrink-0" />
+            <p className="text-[#888888] font-rajdhani text-sm leading-relaxed">
+              Tu producto será revisado por un administrador antes de ser publicado en el catálogo.
+            </p>
+          </div>
 
-            {/* Aviso */}
-            <div className="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-lg p-4">
-              <p className="text-blue-200 text-sm">
-                <strong>Nota:</strong> Tu producto será revisado por un administrador antes de ser publicado en el catálogo.
-              </p>
-            </div>
-          </form>
-        </div>
+          {/* Botones */}
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => router.push('/seller/products')}
+              className="btn-tactical-outline flex-1 py-4"
+            >
+              CANCELAR
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-tactical flex-1 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'PUBLICANDO...' : 'PUBLICAR PRODUCTO'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
