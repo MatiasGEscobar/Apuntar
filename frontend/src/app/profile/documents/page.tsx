@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import ImageUpload from '../../../components/upload/ImageUpload';
-import { Shield, Upload, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Upload, CheckCircle, Clock, XCircle, ArrowLeft, FileText } from 'lucide-react';
 import api from '../../../lib/api';
 import { UserStatus } from '../../../types/user.types';
+import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function DocumentsUploadPage() {
   const router = useRouter();
@@ -16,12 +18,7 @@ export default function DocumentsUploadPage() {
   const [cluImages, setCluImages] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-
-    // Si ya tiene documentos subidos, mostrarlos
+    if (!currentUser) { router.push('/login'); return; }
     if (currentUser.dniFrontUrl && currentUser.dniBackUrl) {
       setDniImages([currentUser.dniFrontUrl, currentUser.dniBackUrl]);
     }
@@ -33,214 +30,214 @@ export default function DocumentsUploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     if (dniImages.length !== 2) {
-      alert('Debes subir el DNI (frente y reverso)');
+      toast('Debés subir el DNI (frente y reverso)');
       setLoading(false);
       return;
     }
-
     if (cluImages.length !== 2) {
-      alert('Debes subir el CLU (frente y reverso)');
+      toast('Debés subir el CLU (frente y reverso)');
       setLoading(false);
       return;
     }
-
     try {
-      // Actualizar usuario con las URLs de los documentos
       await api.patch(`/users/${currentUser?.id}`, {
         dniFrontUrl: dniImages[0],
         dniBackUrl: dniImages[1],
         cluFrontUrl: cluImages[0],
         cluBackUrl: cluImages[1],
       });
-
-      alert('Documentos subidos exitosamente. Tu cuenta será revisada por un administrador.');
-      
-      // Actualizar usuario en localStorage
-      const updatedUser = {
-        ...currentUser,
-        dniFrontUrl: dniImages[0],
-        dniBackUrl: dniImages[1],
-        cluFrontUrl: cluImages[0],
-        cluBackUrl: cluImages[1],
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      }
-      
+      const updatedUser = { ...currentUser, dniFrontUrl: dniImages[0], dniBackUrl: dniImages[1], cluFrontUrl: cluImages[0], cluBackUrl: cluImages[1] };
+      if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(updatedUser));
+      toast('Documentos enviados. Tu cuenta será revisada por un administrador.');
       router.push('/products');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al subir documentos');
+      toast.error(error.response?.data?.message || 'Error al subir documentos');
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusBanner = () => {
+  const statusBanner = () => {
     if (!currentUser) return null;
-
-    switch (currentUser.status) {
-      case UserStatus.PENDING:
-        return (
-          <div className="bg-yellow-900 bg-opacity-20 border border-yellow-600 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-yellow-500" />
-              <div>
-                <p className="text-yellow-200 font-semibold">Pendiente de Verificación</p>
-                <p className="text-yellow-200 text-sm">
-                  {currentUser.dniFrontUrl && currentUser.cluFrontUrl
-                    ? 'Tus documentos están siendo revisados.'
-                    : 'Sube tus documentos para que un administrador revise tu cuenta.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case UserStatus.APPROVED:
-        return (
-          <div className="bg-green-900 bg-opacity-20 border border-green-600 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-6 h-6 text-green-500" />
-              <div>
-                <p className="text-green-200 font-semibold">¡Cuenta Verificada!</p>
-                <p className="text-green-200 text-sm">Tu cuenta ha sido aprobada. Ya puedes comprar y vender.</p>
-              </div>
-            </div>
-          </div>
-        );
-      case UserStatus.REJECTED:
-        return (
-          <div className="bg-red-900 bg-opacity-20 border border-red-600 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <XCircle className="w-6 h-6 text-red-500" />
-              <div>
-                <p className="text-red-200 font-semibold">Cuenta Rechazada</p>
-                <p className="text-red-200 text-sm">
-                  {currentUser.rejectionReason || 'Tu cuenta fue rechazada. Sube nuevos documentos para reintentar.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+    const config = {
+      [UserStatus.PENDING]: {
+        icon: <Clock className="w-5 h-5 text-yellow-400" />,
+        title: 'PENDIENTE DE VERIFICACIÓN',
+        msg: currentUser.dniFrontUrl && currentUser.cluFrontUrl
+          ? 'Tus documentos están siendo revisados por un administrador.'
+          : 'Subí tus documentos para que un administrador revise tu cuenta.',
+        color: 'text-yellow-400',
+        bg: 'border-yellow-900/40 bg-yellow-950/10',
+      },
+      [UserStatus.APPROVED]: {
+        icon: <CheckCircle className="w-5 h-5 text-green-400" />,
+        title: '¡CUENTA VERIFICADA!',
+        msg: 'Tu cuenta fue aprobada. Ya podés comprar y vender.',
+        color: 'text-green-400',
+        bg: 'border-green-900/40 bg-green-950/10',
+      },
+      [UserStatus.REJECTED]: {
+        icon: <XCircle className="w-5 h-5 text-red-400" />,
+        title: 'CUENTA RECHAZADA',
+        msg: currentUser.rejectionReason || 'Tu cuenta fue rechazada. Subí nuevos documentos para reintentar.',
+        color: 'text-red-400',
+        bg: 'border-red-900/40 bg-red-950/10',
+      },
+      [UserStatus.IN_REVIEW]: {
+        icon: <Clock className="w-5 h-5 text-blue-400" />,
+        title: 'EN REVISIÓN',
+        msg: 'Un administrador está revisando tus documentos.',
+        color: 'text-blue-400',
+        bg: 'border-blue-900/40 bg-blue-950/10',
+      },
+      [UserStatus.SUSPENDED]: {
+        icon: <XCircle className="w-5 h-5 text-[#888888]" />,
+        title: 'CUENTA SUSPENDIDA',
+        msg: 'Tu cuenta fue suspendida. Contactá al administrador.',
+        color: 'text-[#888888]',
+        bg: 'border-[#333333] bg-[#1a1a1a]',
+      },
+    };
+    const s = config[currentUser.status];
+    if (!s) return null;
+    return (
+      <div className={`border p-4 flex gap-3 mb-8 ${s.bg}`}>
+        <div className="flex-shrink-0 mt-0.5">{s.icon}</div>
+        <div>
+          <p className={`font-tactical text-sm tracking-wider mb-1 ${s.color}`}>{s.title}</p>
+          <p className="text-[#888888] font-rajdhani text-sm">{s.msg}</p>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <nav className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-white">ArmaLegal.ar</h1>
-            <div className="flex gap-4">
-              <button
-                onClick={() => router.push('/products')}
-                className="text-slate-400 hover:text-white transition"
-              >
-                Ver Catálogo
-              </button>
-              <button
-                onClick={() => authService.logout()}
-                className="text-slate-400 hover:text-white transition"
-              >
-                Salir
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#0a0a0a]">
+
+      {/* Navbar */}
+      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/products')}
+            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Ver catálogo
+          </button>
+          <Logo size="sm" />
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-          <div className="text-center mb-8">
-            <Shield className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-white mb-2">Verificación de Identidad</h1>
-            <p className="text-slate-400">Sube tus documentos para completar tu registro</p>
+      {/* Header */}
+      <div className="border-b border-[#333333] bg-[#111111]">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-6 h-px bg-[#c9a227]" />
+            <span className="text-[#c9a227] text-xs tracking-[0.3em] uppercase font-rajdhani">
+              Verificación de identidad
+            </span>
+          </div>
+          <h1 className="font-tactical text-5xl text-[#e8e8e8] tracking-wide">DOCUMENTACIÓN</h1>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-8">
+
+        {statusBanner()}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* DNI */}
+          <div className="border border-[#333333] bg-[#111111] p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <FileText className="w-4 h-4 text-[#c9a227]" />
+              <h3 className="font-tactical text-lg tracking-wider text-[#c9a227]">DNI</h3>
+              <span className="text-[#555555] font-rajdhani text-xs uppercase tracking-wider">Frente y reverso · 2 imágenes</span>
+            </div>
+            <ImageUpload
+              onImagesChange={setDniImages}
+              maxImages={2}
+              currentImages={dniImages}
+              folder="documents"
+            />
+            <p className="text-[#555555] font-rajdhani text-xs mt-3 tracking-wide">
+              Asegurate de que las imágenes sean claras, sin reflejos ni sombras
+            </p>
           </div>
 
-          {getStatusBanner()}
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Upload DNI */}
-            <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                DNI (Frente y Reverso) *
-              </label>
-              <ImageUpload
-                onImagesChange={setDniImages}
-                maxImages={2}
-                currentImages={dniImages}
-                folder="documents"
-              />
-              <p className="text-slate-500 text-xs mt-2">
-                📄 Sube 2 imágenes claras: frente y reverso de tu DNI
-              </p>
+          {/* CLU */}
+          <div className="border border-[#333333] bg-[#111111] p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <FileText className="w-4 h-4 text-[#c9a227]" />
+              <h3 className="font-tactical text-lg tracking-wider text-[#c9a227]">CLU</h3>
+              <span className="text-[#555555] font-rajdhani text-xs uppercase tracking-wider">Credencial Legítimo Usuario · 2 imágenes</span>
             </div>
+            <ImageUpload
+              onImagesChange={setCluImages}
+              maxImages={2}
+              currentImages={cluImages}
+              folder="documents"
+            />
+            <p className="text-[#555555] font-rajdhani text-xs mt-3 tracking-wide">
+              El CLU debe estar vigente. Subí frente y reverso
+            </p>
+          </div>
 
-            {/* Upload CLU */}
+          {/* Proceso */}
+          <div className="border border-[#c9a227]/20 bg-[#c9a227]/5 p-5 flex gap-3">
+            <Upload className="w-4 h-4 text-[#c9a227] flex-shrink-0 mt-0.5" />
             <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
-                CLU - Credencial de Legítimo Usuario (Frente y Reverso) *
-              </label>
-              <ImageUpload
-                onImagesChange={setCluImages}
-                maxImages={2}
-                currentImages={cluImages}
-                folder="documents"
-              />
-              <p className="text-slate-500 text-xs mt-2">
-                📄 Sube 2 imágenes claras: frente y reverso de tu CLU vigente
-              </p>
-            </div>
-
-            {/* Aviso legal */}
-            <div className="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-xl p-4">
-              <div className="flex gap-3">
-                <Upload className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-200">
-                  <p className="font-semibold mb-1">Proceso de Verificación</p>
-                  <ol className="list-decimal list-inside space-y-1">
-                    <li>Sube imágenes claras de tu DNI y CLU</li>
-                    <li>Un administrador revisará tus documentos</li>
-                    <li>Recibirás una notificación con el resultado</li>
-                    <li>Una vez aprobado, podrás comprar y vender</li>
-                  </ol>
-                </div>
+              <p className="font-tactical text-sm tracking-wider text-[#c9a227] mb-3">PROCESO DE VERIFICACIÓN</p>
+              <div className="space-y-2">
+                {[
+                  '01 · Subí imágenes claras de tu DNI y CLU',
+                  '02 · Un administrador revisará tus documentos',
+                  '03 · Recibirás una notificación con el resultado',
+                  '04 · Una vez aprobado podrás comprar y vender',
+                ].map((step) => (
+                  <p key={step} className="text-[#888888] font-rajdhani text-sm">{step}</p>
+                ))}
               </div>
             </div>
+          </div>
 
-            {/* Botones */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => router.push('/products')}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-semibold transition"
-              >
-                {currentUser?.dniFrontUrl ? 'Volver al Catálogo' : 'Hacer Después'}
-              </button>
-              <button
-                type="submit"
-                disabled={loading || dniImages.length !== 2 || cluImages.length !== 2}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-600 text-white py-4 rounded-xl font-semibold transition"
-              >
-                {loading ? 'Subiendo...' : currentUser?.dniFrontUrl ? 'Actualizar Documentos' : 'Enviar Documentos'}
-              </button>
+          {/* Consejos */}
+          <div className="border border-[#333333] bg-[#111111] p-5">
+            <p className="font-tactical text-sm tracking-wider text-[#888888] mb-3">CONSEJOS PARA APROBACIÓN RÁPIDA</p>
+            <div className="space-y-1.5">
+              {[
+                'Imágenes claras y completamente legibles',
+                'CLU vigente, sin vencer',
+                'Documento completo visible en la foto',
+                'Sin reflejos, sombras ni imágenes borrosas',
+              ].map((tip) => (
+                <div key={tip} className="flex items-center gap-3">
+                  <div className="w-1 h-1 bg-[#c9a227] rounded-full flex-shrink-0" />
+                  <p className="text-[#555555] font-rajdhani text-sm">{tip}</p>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Ayuda */}
-            <div className="bg-slate-900 rounded-xl p-4 border border-slate-700">
-              <p className="text-slate-300 text-sm mb-2">💡 <strong>Consejos para una aprobación rápida:</strong></p>
-              <ul className="text-slate-400 text-xs space-y-1 ml-4">
-                <li>• Asegúrate de que las imágenes sean claras y legibles</li>
-                <li>• El CLU debe estar vigente (no vencido)</li>
-                <li>• Las fotos deben mostrar el documento completo</li>
-                <li>• Evita reflejos, sombras o imágenes borrosas</li>
-              </ul>
-            </div>
-          </form>
-        </div>
+          {/* Botones */}
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => router.push('/products')}
+              className="btn-tactical-outline flex-1 py-4"
+            >
+              {currentUser?.dniFrontUrl ? 'VOLVER AL CATÁLOGO' : 'HACER DESPUÉS'}
+            </button>
+            <button
+              type="submit"
+              disabled={loading || dniImages.length !== 2 || cluImages.length !== 2}
+              className="btn-tactical flex-1 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'ENVIANDO...' : currentUser?.dniFrontUrl ? 'ACTUALIZAR DOCUMENTOS' : 'ENVIAR DOCUMENTOS'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

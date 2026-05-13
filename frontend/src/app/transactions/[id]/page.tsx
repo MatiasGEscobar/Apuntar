@@ -8,6 +8,7 @@ import { useChat } from '../../../hooks/useChat';
 import { Transaction, TransactionStatus } from '../../../types/transaction.types';
 import { ArrowLeft, MessageSquare, Send, CheckCircle, Package, Star, Shield, AlertTriangle } from 'lucide-react';
 import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function TransactionDetailPage() {
   const params = useParams();
@@ -60,7 +61,7 @@ export default function TransactionDetailPage() {
       await loadTransaction(transaction.id);
       setShowRating(true);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al confirmar entrega');
+      toast.error(error.response?.data?.message || 'Error al confirmar entrega');
     }
   };
 
@@ -71,7 +72,7 @@ export default function TransactionDetailPage() {
       await loadTransaction(transaction.id);
       setShowRating(false);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al enviar calificación');
+      toast.error(error.response?.data?.message || 'Error al enviar calificación');
     }
   };
 

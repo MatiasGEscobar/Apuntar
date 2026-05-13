@@ -7,6 +7,7 @@ import { authService } from '../../../lib/auth';
 import { Transaction } from '../../../types/transaction.types';
 import { ArrowLeft, Shield, AlertTriangle, CheckCircle, CreditCard, Lock } from 'lucide-react';
 import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -44,7 +45,7 @@ export default function CheckoutPage() {
       const redirectUrl = preference.sandboxInitPoint || preference.initPoint;
       window.location.href = redirectUrl;
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al iniciar el pago');
+      toast.error(error.response?.data?.message || 'Error al iniciar el pago');
       setProcessing(false);
     }
   };

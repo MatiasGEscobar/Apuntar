@@ -9,6 +9,7 @@ import { UserRole } from '../../../../types/user.types';
 import { ArrowLeft } from 'lucide-react';
 import Logo from '../../../../components/logo';
 import ImageUpload from '../../../../components/upload/ImageUpload';
+import toast from 'react-hot-toast';
 
 const PROVINCIAS = [
   'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
@@ -42,7 +43,7 @@ export default function NewProductPage() {
     const user = authService.getCurrentUser();
     if (!user || user.role !== UserRole.SELLER) { router.push('/login'); return; }
     if (user.status !== 'approved') {
-      alert('Debés tener tu cuenta aprobada para publicar productos.');
+      toast('Debés tener tu cuenta aprobada para publicar productos.');
       router.push('/profile/documents');
     }
   }, []);
@@ -57,7 +58,7 @@ export default function NewProductPage() {
         price: parseFloat(formData.price),
         images: formData.images.length > 0 ? formData.images : ['https://via.placeholder.com/400x300?text=Arma'],
       });
-      alert('Producto creado. Pendiente de aprobación.');
+      toast('Producto creado. Pendiente de aprobación.');
       router.push('/seller/products');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al crear producto');

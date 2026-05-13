@@ -8,6 +8,7 @@ import { transactionsService } from '../../../lib/transactions';
 import { Product } from '../../../types/product.types';
 import { ArrowLeft, MapPin, Star, Eye, ShoppingCart, AlertTriangle, Shield } from 'lucide-react';
 import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function ProductDetailPage() {
   const [buying, setBuying] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser] = useState(authService.getCurrentUser());
 
   useEffect(() => {
     setIsAuthenticated(authService.isAuthenticated());
@@ -39,7 +41,7 @@ export default function ProductDetailPage() {
     if (!isAuthenticated) { router.push('/login'); return; }
     const user = authService.getCurrentUser();
     if (user?.status !== 'approved') {
-      alert('Debés tener tu cuenta aprobada para comprar.');
+      toast('Debés tener tu cuenta aprobada para comprar.');
       router.push('/profile/documents');
       return;
     }
@@ -48,7 +50,7 @@ export default function ProductDetailPage() {
       const transaction = await transactionsService.create(params.id as string);
       router.push(`/checkout/${transaction.id}`);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al iniciar compra');
+      toast.error(error.response?.data?.message || 'Error al iniciar compra');
     } finally {
       setBuying(false);
     }
@@ -211,23 +213,25 @@ export default function ProductDetailPage() {
             )}
 
             {/* Botón compra */}
-            <button
-              onClick={handleBuy}
-              disabled={buying}
-              className="btn-tactical w-full text-center flex items-center justify-center gap-3 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {buying ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-[#0a0a0a]/30 border-t-[#0a0a0a] rounded-full animate-spin" />
-                  PROCESANDO...
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4" />
-                  INICIAR COMPRA SEGURA
-                </>
-              )}
-            </button>
+{product.sellerId !== currentUser?.id && (
+  <button
+    onClick={handleBuy}
+    disabled={buying}
+    className="btn-tactical w-full text-center flex items-center justify-center gap-3 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {buying ? (
+      <>
+        <div className="w-4 h-4 border-2 border-[#0a0a0a]/30 border-t-[#0a0a0a] rounded-full animate-spin" />
+        PROCESANDO...
+      </>
+    ) : (
+      <>
+        <ShoppingCart className="w-4 h-4" />
+        INICIAR COMPRA SEGURA
+      </>
+    )}
+  </button>
+)}
 
             {/* Aviso RENAR */}
             <div className="border border-[#c9a227]/20 p-4 flex gap-3">

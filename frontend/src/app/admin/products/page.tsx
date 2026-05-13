@@ -8,6 +8,7 @@ import { Product, ProductStatus } from '../../../types/product.types';
 import { UserRole } from '../../../types/user.types';
 import { Check, X, Eye, LogOut, Users, Package } from 'lucide-react';
 import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -35,14 +36,14 @@ export default function AdminProductsPage() {
 
   const handleApprove = async (id: string) => {
     try { await productsService.approve(id); await loadProducts(); }
-    catch { alert('Error al aprobar producto'); }
+    catch { toast.error('Error al aprobar producto'); }
   };
 
   const handleReject = async (id: string) => {
     const reason = prompt('Motivo del rechazo:');
     if (!reason) return;
     try { await productsService.reject(id, reason); await loadProducts(); }
-    catch { alert('Error al rechazar producto'); }
+    catch { toast.error('Error al rechazar producto'); }
   };
 
   const statusConfig: Record<ProductStatus, { label: string; color: string; bg: string }> = {
