@@ -35,16 +35,34 @@ export default function AdminProductsPage() {
   };
 
   const handleApprove = async (id: string) => {
-    try { await productsService.approve(id); await loadProducts(); }
-    catch { toast.error('Error al aprobar producto'); }
-  };
+  try {
+    await productsService.approve(id);
+    setProducts(prev =>
+      filter === 'all'
+        ? prev.map(p => p.id === id ? { ...p, status: ProductStatus.APPROVED } : p)
+        : prev.filter(p => p.id !== id)
+    );
+    toast.success('Producto aprobado');
+  } catch {
+    toast.error('Error al aprobar producto');
+  }
+};
 
   const handleReject = async (id: string) => {
-    const reason = prompt('Motivo del rechazo:');
-    if (!reason) return;
-    try { await productsService.reject(id, reason); await loadProducts(); }
-    catch { toast.error('Error al rechazar producto'); }
-  };
+  const reason = prompt('Motivo del rechazo:');
+  if (!reason) return;
+  try {
+    await productsService.reject(id, reason);
+    setProducts(prev =>
+      filter === 'all'
+        ? prev.map(p => p.id === id ? { ...p, status: ProductStatus.REJECTED, rejectionReason: reason } : p)
+        : prev.filter(p => p.id !== id)
+    );
+    toast.success('Producto rechazado');
+  } catch {
+    toast.error('Error al rechazar producto');
+  }
+};
 
   const statusConfig: Record<ProductStatus, { label: string; color: string; bg: string }> = {
     [ProductStatus.PENDING]:  { label: 'PENDIENTE',  color: 'text-yellow-400', bg: 'border-yellow-900/40 bg-yellow-950/10' },

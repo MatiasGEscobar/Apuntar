@@ -211,7 +211,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-[#555555] font-rajdhani text-xs">
-          Plataforma regulada · RENAR · Argentina
+          Plataforma regulada · ANMAC · Argentina
         </p>
       </div>
     </div>

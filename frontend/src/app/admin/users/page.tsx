@@ -7,6 +7,7 @@ import { authService } from '../../../lib/auth';
 import { User, UserStatus, UserRole } from '../../../types/user.types';
 import { Check, X, Shield, LogOut, Users, Package } from 'lucide-react';
 import Logo from '../../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -32,16 +33,26 @@ export default function AdminUsersPage() {
   };
 
   const handleApprove = async (id: string) => {
-    try { await usersService.approve(id); await loadUsers(); }
-    catch (error) { console.error('Error aprobando usuario:', error); }
-  };
+  try {
+    await usersService.approve(id);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, status: UserStatus.APPROVED } : u));
+    toast.success('Usuario aprobado');
+  } catch (error) {
+    toast.error('Error al aprobar usuario');
+  }
+};
 
   const handleReject = async (id: string) => {
-    const reason = prompt('Motivo del rechazo:');
-    if (!reason) return;
-    try { await usersService.reject(id, reason); await loadUsers(); }
-    catch (error) { console.error('Error rechazando usuario:', error); }
-  };
+  const reason = prompt('Motivo del rechazo:');
+  if (!reason) return;
+  try {
+    await usersService.reject(id, reason);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, status: UserStatus.REJECTED, rejectionReason: reason } : u));
+    toast.success('Usuario rechazado');
+  } catch (error) {
+    toast.error('Error al rechazar usuario');
+  }
+};
 
   const statusConfig: Record<UserStatus, { label: string; color: string; bg: string }> = {
     [UserStatus.PENDING]:   { label: 'PENDIENTE',   color: 'text-yellow-400', bg: 'border-yellow-900/40 bg-yellow-950/10' },

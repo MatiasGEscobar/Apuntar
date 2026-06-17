@@ -50,6 +50,19 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleCancel = async () => {
+  if (!transaction) return;
+  if (!confirm('¿Cancelar esta compra? El producto volverá a estar disponible.')) return;
+
+  try {
+    await transactionsService.cancel(transaction.id, 'Cancelado por el comprador');
+    toast.success('Compra cancelada. El producto está disponible nuevamente.');
+    router.push('/products');
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Error al cancelar');
+  }
+};
+
   if (loading) return (
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
       <div className="w-8 h-8 border-2 border-[#333333] border-t-[#c9a227] rounded-full animate-spin" />
@@ -221,6 +234,14 @@ export default function CheckoutPage() {
                       PAGAR CON MERCADO PAGO
                     </>
                   )}
+                </button>
+
+                <button
+                  onClick={handleCancel}
+                  disabled={processing}
+                  className="w-full text-center py-3 text-[#888888] hover:text-red-400 font-rajdhani text-sm tracking-wider uppercase transition-colors disabled:opacity-50"
+                >
+                  Cancelar compra
                 </button>
 
                 <div className="flex items-center justify-center gap-2 text-[#555555]">

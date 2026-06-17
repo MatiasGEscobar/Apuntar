@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: "Apuntar Academia",
-  description: "Plataforma de comercio legal de armas regulada por RENAR",
+  description: "Plataforma de comercio legal de armas regulada por ANMAC",
 };
 
 export default function RootLayout({

@@ -20,11 +20,11 @@ export default function Logo({ size = 'md', showText = true }: LogoProps) {
       </svg>
       {showText && (
         <div>
-          <div className={`font-tactical ${s.text} text-[#e8e8e8] leading-none tracking-widest`}>
-            APUNTAR
-          </div>
           <div className={`${s.sub} text-[#c9a227] tracking-[0.4em] uppercase mt-0.5`}>
             Academia
+          </div>
+          <div className={`font-tactical ${s.text} text-[#e8e8e8] leading-none tracking-widest`}>
+            APUNTAR
           </div>
         </div>
       )}

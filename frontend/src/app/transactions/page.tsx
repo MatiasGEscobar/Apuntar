@@ -7,6 +7,7 @@ import { authService } from '../../lib/auth';
 import { Transaction, TransactionStatus } from '../../types/transaction.types';
 import { Package, MessageSquare, Eye, ArrowLeft } from 'lucide-react';
 import Logo from '../../components/logo';
+import toast from 'react-hot-toast';
 
 export default function TransactionsPage() {
   const router = useRouter();
@@ -14,22 +15,35 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser] = useState(authService.getCurrentUser());
 
-  useEffect(() => {
-    if (!currentUser) { router.push('/login'); return; }
+useEffect(() => {
+  if (!currentUser) { router.push('/login'); return; }
 
-    // Manejar retorno desde Mercado Pago
+  const handleMPReturn = async () => {
     const searchParams = new URLSearchParams(window.location.search);
     const status = searchParams.get('status');
     const transactionId = searchParams.get('id');
-    if (status && transactionId) {
-      if (status === 'success') alert('✅ ¡Pago exitoso! Tu dinero está en escrow.');
-      else if (status === 'failure') alert('❌ El pago fue rechazado. Podés intentarlo nuevamente.');
-      else if (status === 'pending') alert('⏳ Tu pago está pendiente de acreditación.');
-      window.history.replaceState({}, '', '/transactions');
-    }
 
-    loadTransactions();
-  }, []);
+    if (status && transactionId) {
+      if (status === 'success') {
+        toast.success('¡Pago exitoso! Tu dinero está en escrow.');
+      } else if (status === 'failure') {
+        try {
+          await transactionsService.cancel(transactionId, 'Pago rechazado en Mercado Pago');
+          toast.error('El pago fue rechazado. El producto está disponible nuevamente.');
+        } catch {
+          toast.error('El pago fue rechazado.');
+        }
+      } else if (status === 'pending') {
+        toast('Tu pago está pendiente de acreditación.', { icon: '⏳' });
+      }
+      window.history.replaceState({}, '', '/transactions');
+      loadTransactions();
+    }
+  };
+
+  handleMPReturn();
+  loadTransactions();
+}, []);
 
   const loadTransactions = async () => {
     try {

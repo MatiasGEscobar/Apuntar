@@ -66,14 +66,14 @@ export default function LoginPage() {
               DE ARMAS
             </h2>
             <p className="text-[#888888] font-rajdhani text-lg leading-relaxed max-w-sm">
-              Plataforma regulada por RENAR. Todas las transacciones 
+              Plataforma regulada por ANMAC. Todas las transacciones 
               verificadas con sistema de escrow seguro.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             {[
-              { num: '100%', label: 'Regulado RENAR' },
+              { num: '100%', label: 'Regulado ANMAC' },
               { num: 'Escrow', label: 'Sistema de pago' },
               { num: '3 Roles', label: 'Comprador / Vendedor / Admin' },
             ].map((item) => (
@@ -169,7 +169,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-[#555555] font-rajdhani text-xs">
-            Plataforma regulada · RENAR · Argentina
+            Plataforma regulada · ANMAC · Argentina
           </p>
         </div>
       </div>
