@@ -132,7 +132,7 @@ export default function ProductsPage() {
             ARMAMENTO LEGAL
           </h1>
           <p className="text-[#888888] font-rajdhani text-lg">
-            Todos los productos verificados y aprobados · Regulado por RENAR
+            Todos los productos verificados y aprobados · Regulado por ANMAC
           </p>
         </div>
       </div>

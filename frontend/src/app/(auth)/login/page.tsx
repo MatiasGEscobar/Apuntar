@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import Logo from '../../../components/logo';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,11 +44,16 @@ export default function LoginPage() {
 
         {/* Símbolo grande de fondo */}
         <div className="absolute inset-0 flex items-center justify-center opacity-5">
-          <svg width="400" height="400" viewBox="0 0 100 100" fill="none">
-            <polygon points="50,5 95,90 80,90 50,28 20,90 5,90" fill="#c9a227" />
-            <polygon points="50,35 70,80 60,80 50,58 40,80 30,80" fill="#0a0a0a" />
-          </svg>
-        </div>
+  <Image
+    src="/images/logo.png"
+    alt=""
+    width={521}
+    height={479}
+    style={{ width: 'auto', height: 'auto' }}
+    className="object-contain"
+    priority
+  />
+</div>
 
         {/* Contenido */}
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">

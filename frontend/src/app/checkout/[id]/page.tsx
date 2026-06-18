@@ -175,11 +175,11 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Aviso RENAR */}
+            {/* Aviso ANMAC */}
             <div className="border border-red-900/40 bg-red-950/10 p-5 flex gap-3">
               <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-tactical text-sm tracking-wider text-red-400 mb-1">IMPORTANTE · RENAR</p>
+                <p className="font-tactical text-sm tracking-wider text-red-400 mb-1">IMPORTANTE · ANMAC</p>
                 <p className="text-[#888888] font-rajdhani text-sm leading-relaxed">
                   La entrega <strong className="text-[#e8e8e8]">DEBE</strong> ser presencial con verificación de CLU vigente y DNI de ambas partes.
                 </p>
