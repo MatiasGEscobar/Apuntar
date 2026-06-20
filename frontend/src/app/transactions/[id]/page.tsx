@@ -65,6 +65,19 @@ export default function TransactionDetailPage() {
     }
   };
 
+
+const handleCancelTransaction = async () => {
+  if (!transaction) return;
+  if (!confirm('¿Cancelar esta compra? El producto volverá a estar disponible para otros compradores.')) return;
+  try {
+    await transactionsService.cancel(transaction.id, 'Cancelado por el comprador');
+    toast.success('Compra cancelada. El producto está disponible nuevamente.');
+    router.push('/transactions');
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Error al cancelar la compra');
+  }
+};
+
   const handleSubmitRating = async () => {
     if (!transaction || rating === 0) return;
     try {
@@ -173,13 +186,31 @@ export default function TransactionDetailPage() {
             {/* Confirmar entrega */}
             {transaction.status === TransactionStatus.ESCROW && isBuyer && (
               <button
-                onClick={handleConfirmDelivery}
-                className="w-full border border-green-700 bg-green-950/20 text-green-400 font-tactical text-sm tracking-wider py-4 hover:bg-green-950/40 transition-colors flex items-center justify-center gap-2"
+              onClick={handleConfirmDelivery}
+              className="w-full border border-green-700 bg-green-950/20 text-green-400 font-tactical text-sm tracking-wider py-4 hover:bg-green-950/40 transition-colors flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              CONFIRMAR ENTREGA
+            </button>
+          )}
+
+          {/* Acciones para pago pendiente */}
+          {transaction.status === TransactionStatus.PENDING && isBuyer && (
+            <div className="space-y-2">
+              <button
+                onClick={() => router.push(`/checkout/${transaction.id}`)}
+                className="btn-tactical w-full text-center py-3"
               >
-                <CheckCircle className="w-4 h-4" />
-                CONFIRMAR ENTREGA
+                REINTENTAR PAGO
               </button>
-            )}
+              <button
+                onClick={handleCancelTransaction}
+                className="w-full border border-red-900 bg-red-950/20 text-red-400 font-tactical text-sm tracking-wider py-3 hover:bg-red-950/40 transition-colors"
+              >
+                CANCELAR COMPRA
+              </button>
+            </div>
+          )}
           </div>
 
           {/* Chat - columna derecha */}
@@ -252,6 +283,14 @@ export default function TransactionDetailPage() {
               </div>
             )}
 
+            {transaction.status === TransactionStatus.PENDING && (
+              <div className="p-4 border-t border-yellow-900/40 bg-yellow-950/10 text-center">
+                <p className="text-yellow-400 font-rajdhani text-sm">
+                  El chat se habilita una vez confirmado el pago
+                </p>
+              </div>
+            )}
+            
             {transaction.status === TransactionStatus.COMPLETED && (
               <div className="p-4 border-t border-green-900/40 bg-green-950/10 text-center">
                 <p className="text-green-400 font-tactical text-sm tracking-wider">
