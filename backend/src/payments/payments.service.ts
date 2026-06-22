@@ -18,7 +18,10 @@ export class PaymentsService {
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
     this.backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:4000';
 
+    // Log de diagnóstico
     console.log('PaymentsService iniciado con FRONTEND_URL:', this.frontendUrl);
+    console.log('FRONTEND_URL:', this.frontendUrl);
+    console.log('BACKEND_URL:', this.backendUrl);
   }
 
   async createPreference(data: {
@@ -32,30 +35,40 @@ export class PaymentsService {
       const preference = new Preference(this.client);
       const totalAmount = Number(data.amount) + Number(data.buyerCommission);
 
-      const response = await preference.create({
-        body: {
-          items: [
-            {
-              id: data.transactionId,
-              title: data.productTitle,
-              quantity: 1,
-              unit_price: totalAmount,
-              currency_id: 'ARS',
-            },
-          ],
-          payer: {
-            email: data.buyerEmail,
-          },
-          back_urls: {
-            success: `${this.frontendUrl}/transactions?status=success&id=${data.transactionId}`,
-            failure: `${this.frontendUrl}/transactions?status=failure&id=${data.transactionId}`,
-            pending: `${this.frontendUrl}/transactions?status=pending&id=${data.transactionId}`,
-          },
-          external_reference: data.transactionId,
-          notification_url: `${this.backendUrl}/api/payments/webhook`,
-          statement_descriptor: 'ArmeriaLegal',
-        },
-      });
+      const body = {
+  items: [
+    {
+      id: data.transactionId,
+      title: data.productTitle,
+      quantity: 1,
+      unit_price: totalAmount,
+      currency_id: 'ARS',
+    },
+  ],
+  payer: {
+    email: data.buyerEmail,
+  },
+  back_urls: {
+    success: `${this.frontendUrl}/transactions?status=success&id=${data.transactionId}`,
+    failure: `${this.frontendUrl}/transactions?status=failure&id=${data.transactionId}`,
+    pending: `${this.frontendUrl}/transactions?status=pending&id=${data.transactionId}`,
+  },
+  external_reference: data.transactionId,
+  // notification_url: `${this.backendUrl}/api/payments/webhook`,
+  statement_descriptor: 'ArmeriaLegal',
+};
+
+console.log('=== BODY ENVIADO A MP ===');
+console.log(JSON.stringify(body, null, 2));
+
+const response = await preference.create({ body });
+
+      // Logs de diagnóstico
+console.log('=== PREFERENCIA CREADA ===');
+console.log('ID:', response.id);
+console.log('Init Point:', response.init_point);
+console.log('Sandbox Init Point:', response.sandbox_init_point);
+console.log('Response completo:', JSON.stringify(response, null, 2));
 
       return {
         preferenceId: response.id,
