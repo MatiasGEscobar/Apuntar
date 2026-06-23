@@ -37,14 +37,21 @@ export default function CheckoutPage() {
     setProcessing(true);
     try {
       const currentUser = authService.getCurrentUser();
-      const preference = await transactionsService.createPaymentPreference(
+      const response = await transactionsService.createPaymentPreference(
         transaction.id,
         currentUser?.email || '',
         transaction.product.name,
       );
-      const redirectUrl = preference.sandboxInitPoint || preference.initPoint;
+      const redirectUrl = response.sandboxInitPoint || response.initPoint;
+      if (redirectUrl) {
       window.location.href = redirectUrl;
+    } else {
+      console.error('Estructura de preferencia inesperada:', response);
+      toast.error('No se pudo obtener la URL de redirección de Mercado Pago.');
+      setProcessing(false);
+    }
     } catch (error: any) {
+      console.error('Error detallado en handlePayment:', error);
       toast.error(error.response?.data?.message || 'Error al iniciar el pago');
       setProcessing(false);
     }
