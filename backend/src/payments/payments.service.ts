@@ -54,21 +54,12 @@ export class PaymentsService {
     pending: `${this.frontendUrl}/transactions?status=pending&id=${data.transactionId}`,
   },
   external_reference: data.transactionId,
-  // notification_url: `${this.backendUrl}/api/payments/webhook`,
+  notification_url: `${this.backendUrl}/api/payments/webhook`,
   statement_descriptor: 'ArmeriaLegal',
 };
 
-console.log('=== BODY ENVIADO A MP ===');
-console.log(JSON.stringify(body, null, 2));
 
 const response = await preference.create({ body });
-
-      // Logs de diagnóstico
-console.log('=== PREFERENCIA CREADA ===');
-console.log('ID:', response.id);
-console.log('Init Point:', response.init_point);
-console.log('Sandbox Init Point:', response.sandbox_init_point);
-console.log('Response completo:', JSON.stringify(response, null, 2));
 
       return {
         preferenceId: response.id,
