@@ -27,7 +27,10 @@ import { RenarModule } from './renar/renar.module';
         database: configService.get<string>('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
-        logging: true,
+        logging: false,
+        ssl: configService.get('DATABASE_SSL') === 'true' ? {
+      rejectUnauthorized: false,
+      } : false,
       }), 
     }),   
     AuthModule,
