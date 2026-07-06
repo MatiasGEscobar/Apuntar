@@ -58,8 +58,22 @@ export class PaymentsService {
   statement_descriptor: 'ArmeriaLegal',
 };
 
+console.log('=== BODY MP ===', JSON.stringify({
+  buyerEmail: data.buyerEmail,
+  backUrlSuccess: `${this.frontendUrl}/transactions?status=success&id=${data.transactionId}`,
+  frontendUrl: this.frontendUrl,
+  backendUrl: this.backendUrl,
+}, null, 2));
 
 const response = await preference.create({ body });
+
+
+console.log('=== PREFERENCIA ===', JSON.stringify({
+  id: response.id,
+  back_urls: response.back_urls,
+  payer_email: response.payer?.email,
+}, null, 2));
+
 
       return {
         preferenceId: response.id,
