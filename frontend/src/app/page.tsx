@@ -161,7 +161,7 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="relative h-64 overflow-hidden border border-[#333333]">
-                <Image src="/images/te_motiven_a_impulsarte.png" alt="Comunidad Apuntar" fill className="object-cover hover:scale-105 transition-transform duration-500" />
+                <Image src="/images/te motiven a impulsarte.png" alt="Comunidad Apuntar" fill className="object-cover hover:scale-105 transition-transform duration-500" />
               </div>
               <div className="relative h-64 overflow-hidden border border-[#333333]">
                 <Image src="/images/julian.png" alt="Instructor Apuntar" fill className="object-cover hover:scale-105 transition-transform duration-500" />
@@ -179,7 +179,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative h-96 overflow-hidden border border-[#c9a227]/30">
-              <Image src="/images/curso_tiro_inicial.png" alt="Marketplace Apuntar" fill className="object-cover" />
+              <Image src="/images/curso tiro inicial.png" alt="Marketplace Apuntar" fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
               <div className="absolute bottom-6 left-6">
                 <span className="font-tactical text-xs text-[#c9a227] tracking-[0.3em] uppercase">Plataforma regulada · ANMAC</span>
