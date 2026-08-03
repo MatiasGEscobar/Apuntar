@@ -9,6 +9,7 @@ import { ChatModule } from './chat/chat.module';
 import { UploadModule } from './upload/upload.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RenarModule } from './renar/renar.module';
+import { CoursesModule } from './courses/courses.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { RenarModule } from './renar/renar.module';
     UploadModule,
     NotificationsModule,
     RenarModule,
+    CoursesModule,
   ],
 })
 export class AppModule {}
