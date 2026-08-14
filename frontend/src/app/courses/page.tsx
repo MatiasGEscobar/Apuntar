@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { coursesService, Course } from '../../lib/courses';
 import { authService } from '../../lib/auth';
 import { MapPin, Clock, Users, Calendar, ArrowLeft } from 'lucide-react';
-import Logo from '../../components/Logo';
+import Logo from '../../components/logo';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 
