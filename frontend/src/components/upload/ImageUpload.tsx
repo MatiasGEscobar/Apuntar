@@ -9,7 +9,7 @@ interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
   maxImages?: number;
   currentImages?: string[];
-  folder?: 'products' | 'documents';
+  folder?: 'products' | 'documents' | 'courses';
 }
 
 export default function ImageUpload({ 
@@ -38,14 +38,14 @@ export default function ImageUpload({
         const file = acceptedFiles[i];
         const formData = new FormData();
         // IMPORTANTE: El nombre del campo debe coincidir con el backend
-          if (folder === 'products') {
+          if (folder === 'products'|| folder === 'courses') {
             formData.append('files', file); // Para múltiples archivos
           } else {
             formData.append('file', file); // Para archivo único
           }
           
 
-        const endpoint = folder === 'products' ? '/upload/product-images' : '/upload/image';
+        const endpoint = folder === 'products'|| folder === 'courses' ? '/upload/product-images' : '/upload/image';
         const response = await api.post(endpoint, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',

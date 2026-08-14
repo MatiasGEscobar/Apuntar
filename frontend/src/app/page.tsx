@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import CoursesSection from '../components/CoursesSection';
 
 export default function LandingPage() {
   return (
@@ -80,6 +81,9 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        
+        {/* CURSOS - sección dinámica */}
+        <CoursesSection />
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
