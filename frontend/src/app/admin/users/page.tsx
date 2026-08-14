@@ -84,7 +84,9 @@ export default function AdminUsersPage() {
       <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Logo size="sm" />
+            <a href="/">
+              <Logo size="sm" />
+            </a>
             <div className="hidden md:flex items-center gap-1">
               <button
                 onClick={() => router.push('/admin/users')}
