@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
 
           <button
             onClick={() => router.push('/admin/courses')}
-            className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#c9a227] border-b border-[#c9a227]"
+            className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
           >
             <Plus className="w-4 h-4" />CURSOS</button>
 
