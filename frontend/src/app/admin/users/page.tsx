@@ -102,18 +102,16 @@ export default function AdminUsersPage() {
                 onClick={() => router.push('/admin/products')}
                 className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
               >
-                <Package className="w-4 h-4" />
-                PRODUCTOS
-              </button>
+                <Package className="w-4 h-4" />PRODUCTOS</button>
             </div>
           </div>
+
           <button
-  onClick={() => router.push('/admin/courses')}
-  className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
->
-  <Plus className="w-4 h-4" />
-  CURSOS
-</button>
+            onClick={() => router.push('/admin/courses')}
+            className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
+          >
+            <Plus className="w-4 h-4" />CURSOS</button>
+
           <button
             onClick={() => authService.logout()}
             className="flex items-center gap-2 text-[#888888] hover:text-red-400 transition-colors font-rajdhani text-sm"
