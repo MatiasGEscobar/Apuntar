@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usersService } from '../../../lib/users';
 import { authService } from '../../../lib/auth';
 import { User, UserStatus, UserRole } from '../../../types/user.types';
-import { Check, X, Shield, LogOut, Users, Package } from 'lucide-react';
+import { Check, X, Plus, LogOut, Users, Package } from 'lucide-react';
 import Logo from '../../../components/logo';
 import toast from 'react-hot-toast';
 
@@ -107,6 +107,13 @@ export default function AdminUsersPage() {
               </button>
             </div>
           </div>
+          <button
+  onClick={() => router.push('/admin/courses')}
+  className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
+>
+  <Plus className="w-4 h-4" />
+  CURSOS
+</button>
           <button
             onClick={() => authService.logout()}
             className="flex items-center gap-2 text-[#888888] hover:text-red-400 transition-colors font-rajdhani text-sm"
