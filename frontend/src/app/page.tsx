@@ -82,8 +82,6 @@ export default function LandingPage() {
           </div>
         </div>
         
-        {/* CURSOS - sección dinámica */}
-        <CoursesSection />
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
@@ -91,6 +89,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+        {/* CURSOS - sección dinámica */}
+        <CoursesSection />
+        
       {/* QUÉ OFRECEMOS */}
       <section className="py-24 border-t border-[#333333]">
         <div className="max-w-7xl mx-auto px-6">
