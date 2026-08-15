@@ -16,9 +16,10 @@ export default function Logo({ size = 'md', showText = true }: LogoProps) {
 
   return (
      <div className="flex items-center gap-3">
+      <a href="/">
       <Image
         src="/images/logo.png"
-        alt="Apuntar Academia"
+        alt="Logo Academia"
         width={521}
         height={479}
         style={{ height: s.icon, width: s.icon }}
@@ -36,6 +37,7 @@ export default function Logo({ size = 'md', showText = true }: LogoProps) {
           priority
         />
       )}
+      </a>
     </div>
   );
 }
