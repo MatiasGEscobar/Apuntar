@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import CoursesSection from '../components/CoursesSection';
+import Logo from '../components/logo';
 
 export default function LandingPage() {
   return (
@@ -10,8 +11,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/images/logo.png" alt="Apuntar Academia" width={521} height={479} style={{ height: 36, width: 'auto' }} priority />
-            <Image src="/images/letras.png" alt="Apuntar Academia" width={713} height={200} style={{ height: 22, width: 'auto' }} className="hidden sm:block" />
+            <Logo size="sm" />
           </div>
           <div className="flex items-center gap-3">
             <Link

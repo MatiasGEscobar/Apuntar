@@ -15,8 +15,8 @@ export default function Logo({ size = 'md', showText = true }: LogoProps) {
   const s = sizes[size];
 
   return (
-     <div className="flex items-center gap-3">
       <a href="/">
+     <div className="flex items-center gap-3">
       <Image
         src="/images/logo.png"
         alt="Logo Academia"
@@ -37,7 +37,7 @@ export default function Logo({ size = 'md', showText = true }: LogoProps) {
           priority
         />
       )}
-      </a>
     </div>
+      </a>
   );
 }
