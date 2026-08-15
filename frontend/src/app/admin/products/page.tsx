@@ -9,6 +9,7 @@ import { UserRole } from '../../../types/user.types';
 import { Check, X, Eye, LogOut, Users, Package } from 'lucide-react';
 import Logo from '../../../components/logo';
 import toast from 'react-hot-toast';
+import AdminNavbar from '../../../components/AdminNavbar';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -90,36 +91,8 @@ export default function AdminProductsPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Logo size="sm" />
-            <div className="hidden md:flex items-center gap-1">
-              <button
-                onClick={() => router.push('/admin/users')}
-                className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#888888] hover:text-[#c9a227] transition-colors"
-              >
-                <Users className="w-4 h-4" />
-                USUARIOS
-              </button>
-              <button
-                onClick={() => router.push('/admin/products')}
-                className="flex items-center gap-2 px-4 py-2 font-tactical text-sm tracking-wider text-[#c9a227] border-b border-[#c9a227]"
-              >
-                <Package className="w-4 h-4" />
-                PRODUCTOS
-              </button>
-            </div>
-          </div>
-          <button
-            onClick={() => authService.logout()}
-            className="flex items-center gap-2 text-[#888888] hover:text-red-400 transition-colors font-rajdhani text-sm"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:block">SALIR</span>
-          </button>
-        </div>
-      </nav>
+      <AdminNavbar active="products" />
+
 
       {/* Header */}
       <div className="border-b border-[#333333] bg-[#111111]">
