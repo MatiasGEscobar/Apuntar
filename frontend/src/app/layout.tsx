@@ -3,7 +3,7 @@ import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: "Apuntar Academia",
+  title: "Academia Apuntar",
   description: "Plataforma de comercio legal de armas regulada por ANMAC",
 };
 
