@@ -1,89 +1,59 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import MercadoPagoConfig, { Payment } from 'mercadopago';
 
 @Injectable()
 export class PaymentsService {
   private client: MercadoPagoConfig;
-  private frontendUrl: string;
-  private backendUrl: string;
 
   constructor(private configService: ConfigService) {
     const accessToken = this.configService.get<string>('MERCADOPAGO_ACCESS_TOKEN');
-    if (!accessToken) {
-      throw new Error('MERCADOPAGO_ACCESS_TOKEN no está definido');
-    }
-
+    if (!accessToken) throw new Error('MERCADOPAGO_ACCESS_TOKEN no está definido');
     this.client = new MercadoPagoConfig({ accessToken });
-    this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-    this.backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:4000';
-
-    // Log de diagnóstico
-    console.log('PaymentsService iniciado con FRONTEND_URL:', this.frontendUrl);
-    console.log('FRONTEND_URL:', this.frontendUrl);
-    console.log('BACKEND_URL:', this.backendUrl);
   }
 
-  async createPreference(data: {
+  async processPayment(data: {
     transactionId: string;
-    productTitle: string;
     amount: number;
-    buyerCommission: number;
+    token: string;
+    paymentMethodId: string;
+    installments: number;
     buyerEmail: string;
+    identificationType: string;
+    identificationNumber: string;
   }) {
     try {
-      const preference = new Preference(this.client);
-      const totalAmount = Number(data.amount) + Number(data.buyerCommission);
+      const payment = new Payment(this.client);
 
-      const body = {
-  items: [
-    {
-      id: data.transactionId,
-      title: data.productTitle,
-      quantity: 1,
-      unit_price: totalAmount,
-      currency_id: 'ARS',
-    },
-  ],
-  payer: {
-    email: data.buyerEmail,
-  },
-  back_urls: {
-    success: `${this.frontendUrl}/transactions?status=success&id=${data.transactionId}`,
-    failure: `${this.frontendUrl}/transactions?status=failure&id=${data.transactionId}`,
-    pending: `${this.frontendUrl}/transactions?status=pending&id=${data.transactionId}`,
-  },
-  external_reference: data.transactionId,
-  notification_url: `${this.backendUrl}/api/payments/webhook`,
-  statement_descriptor: 'ArmeriaLegal',
-};
-
-console.log('=== BODY MP ===', JSON.stringify({
-  buyerEmail: data.buyerEmail,
-  backUrlSuccess: `${this.frontendUrl}/transactions?status=success&id=${data.transactionId}`,
-  frontendUrl: this.frontendUrl,
-  backendUrl: this.backendUrl,
-}, null, 2));
-
-const response = await preference.create({ body });
-
-
-console.log('=== PREFERENCIA ===', JSON.stringify({
-  id: response.id,
-  back_urls: response.back_urls,
-  payer_email: response.payer?.email,
-}, null, 2));
-
+      const response = await payment.create({
+        body: {
+          transaction_amount: data.amount,
+          token: data.token,
+          description: `Transacción ${data.transactionId}`,
+          installments: data.installments,
+          payment_method_id: data.paymentMethodId,
+          payer: {
+            email: data.buyerEmail,
+            identification: {
+              type: data.identificationType,
+              number: data.identificationNumber,
+            },
+          },
+          external_reference: data.transactionId,
+          notification_url: `${this.configService.get('BACKEND_URL')}/api/payments/webhook`,
+        },
+      });
 
       return {
-        preferenceId: response.id,
-        initPoint: response.init_point,
-        sandboxInitPoint: response.sandbox_init_point,
+        status: response.status,
+        statusDetail: response.status_detail,
+        paymentId: String(response.id),
+        externalReference: response.external_reference,
       };
     } catch (error) {
-      console.log('ERROR MERCADOPAGO:', JSON.stringify(error, null, 2));
+      console.log('ERROR MP:', JSON.stringify(error, null, 2));
       throw new BadRequestException(
-        error instanceof Error ? error.message : 'Error al crear preferencia de pago'
+        error instanceof Error ? error.message : 'Error al procesar el pago'
       );
     }
   }
@@ -103,9 +73,7 @@ console.log('=== PREFERENCIA ===', JSON.stringify({
     if (body.type === 'payment') {
       const paymentId = body.data?.id;
       if (!paymentId) return { received: true };
-
       const payment = await this.getPayment(String(paymentId));
-
       return {
         paymentId: String(payment.id),
         status: payment.status,
@@ -113,7 +81,6 @@ console.log('=== PREFERENCIA ===', JSON.stringify({
         amount: payment.transaction_amount,
       };
     }
-
     return { received: true };
   }
 }

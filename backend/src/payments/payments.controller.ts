@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Param, HttpCode } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionStatus } from '../transactions/entities/transaction.entity';
@@ -10,40 +10,54 @@ export class PaymentsController {
     private readonly transactionsService: TransactionsService,
   ) {}
 
-  // Crear preferencia de pago para una transacción
-  @Post('create-preference/:transactionId')
-  async createPreference(
+  @Post('process/:transactionId')
+  async processPayment(
     @Param('transactionId') transactionId: string,
-    @Body() body: { buyerEmail: string; productTitle: string },
+    @Body() body: {
+      token: string;
+      paymentMethodId: string;
+      installments: number;
+      buyerEmail: string;
+      identificationType: string;
+      identificationNumber: string;
+    },
   ) {
     const transaction = await this.transactionsService.findOne(transactionId);
+    const totalAmount = Number(transaction.amount) + Number(transaction.buyerCommission);
 
-    return this.paymentsService.createPreference({
+    const result = await this.paymentsService.processPayment({
       transactionId,
-      productTitle: body.productTitle,
-      amount: transaction.amount,
-      buyerCommission: transaction.buyerCommission,
+      amount: totalAmount,
+      token: body.token,
+      paymentMethodId: body.paymentMethodId,
+      installments: body.installments,
       buyerEmail: body.buyerEmail,
+      identificationType: body.identificationType,
+      identificationNumber: body.identificationNumber,
     });
+
+    if (result.status === 'approved') {
+      await this.transactionsService.updateStatusBySystem(
+        transactionId,
+        TransactionStatus.ESCROW,
+        { paymentId: result.paymentId },
+      );
+    }
+
+    return result;
   }
 
-  // Webhook: MP notifica el resultado del pago
   @Post('webhook')
   @HttpCode(200)
   async webhook(@Body() body: any) {
     const result = await this.paymentsService.processWebhook(body);
-
-    // Si hay un pago aprobado, actualizamos la transacción a ESCROW
     if (result.status === 'approved' && result.externalReference) {
       await this.transactionsService.updateStatusBySystem(
         result.externalReference,
         TransactionStatus.ESCROW,
-        {
-          paymentId: result.paymentId,
-        },
+        { paymentId: result.paymentId },
       );
     }
-
     return { received: true };
   }
 }

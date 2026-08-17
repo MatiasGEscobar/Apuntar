@@ -30,18 +30,6 @@ export const transactionsService = {
     return response.data;
   },
 
-  async createPaymentPreference(
-  transactionId: string,
-  buyerEmail: string,
-  productTitle: string,
-): Promise<{ preferenceId: string; initPoint: string; sandboxInitPoint: string }> {
-  const response = await api.post(`/payments/create-preference/${transactionId}`, {
-    buyerEmail,
-    productTitle,
-  });
-  return response.data;
-},
-
   async confirmDelivery(id: string): Promise<Transaction> {
     const response = await api.patch<Transaction>(`/transactions/${id}/confirm-delivery`);
     return response.data;
