@@ -10,9 +10,14 @@ import { ChatService } from './chat.service';
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      /\.vercel\.app$/,
+    ],
     credentials: true,
   },
+  transports: ['websocket', 'polling'],
 })
 export class ChatGateway {
   @WebSocketServer()

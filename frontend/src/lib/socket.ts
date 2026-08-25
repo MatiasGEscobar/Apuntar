@@ -7,21 +7,36 @@ export const getSocket = (): Socket => {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000', {
       autoConnect: false,
       withCredentials: true,
+      transports: ['websocket', 'polling'], // websocket primero
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
   }
   return socket;
 };
 
-export const connectSocket = () => {
-  const socket = getSocket();
-  if (!socket.connected) {
-    socket.connect();
+export const resetSocket = (): Socket => {
+  if (socket) {
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
   }
+  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000', {
+    autoConnect: false,
+    withCredentials: true,
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  });
   return socket;
 };
 
-export const disconnectSocket = () => {
-  if (socket?.connected) {
+export const disconnectSocket = (): void => {
+  if (socket) {
+    socket.removeAllListeners();
     socket.disconnect();
+    socket = null;
   }
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSocket } from '../lib/socket';
+import { resetSocket } from '../lib/socket';
 import { Message } from '../types/transaction.types';
 
 export const useChat = (transactionId: string, userId: string) => {
@@ -7,7 +7,10 @@ export const useChat = (transactionId: string, userId: string) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socket = getSocket();
+    if (!transactionId || !userId) return;
+
+    // Siempre crear una conexión nueva
+    const socket = resetSocket();
 
     socket.connect();
 
@@ -15,11 +18,16 @@ export const useChat = (transactionId: string, userId: string) => {
       setIsConnected(true);
       socket.emit('join-transaction', { transactionId });
       socket.emit('get-messages', { transactionId }, (response: Message[]) => {
-        setMessages(response);
+        if (Array.isArray(response)) setMessages(response);
       });
     });
 
     socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket error:', error.message);
       setIsConnected(false);
     });
 
@@ -28,20 +36,22 @@ export const useChat = (transactionId: string, userId: string) => {
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('new-message');
+      socket.emit('leave-transaction', { transactionId });
+      socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [transactionId]);
+  }, [transactionId, userId]);
 
   const sendMessage = (content: string) => {
-    const socket = getSocket();
-    socket.emit('send-message', {
-      transactionId,
-      senderId: userId,
-      content,
-    });
+    const socket = resetSocket();
+    if (!socket.connected) {
+      socket.connect();
+      socket.once('connect', () => {
+        socket.emit('send-message', { transactionId, senderId: userId, content });
+      });
+    } else {
+      socket.emit('send-message', { transactionId, senderId: userId, content });
+    }
   };
 
   return { messages, sendMessage, isConnected };
