@@ -4,6 +4,7 @@ import {
   MessageBody,
   WebSocketServer,
   ConnectedSocket,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
@@ -19,19 +20,70 @@ import { ChatService } from './chat.service';
   },
   transports: ['websocket', 'polling'],
 })
-export class ChatGateway {
+export class ChatGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
+
+  // Mapa de userId → socketId
+  private userSockets = new Map<string, string>();
 
   constructor(private readonly chatService: ChatService) {}
 
   @SubscribeMessage('join-transaction')
   handleJoinTransaction(
-    @MessageBody() data: { transactionId: string },
+    @MessageBody() data: { transactionId: string; userId: string },
     @ConnectedSocket() client: Socket,
   ) {
     client.join(`transaction-${data.transactionId}`);
+
+    // Registrar usuario conectado
+    if (data.userId) {
+      this.userSockets.set(data.userId, client.id);
+      client.data.userId = data.userId;
+      client.data.transactionId = data.transactionId;
+
+      // Notificar al otro usuario en la sala que este entró
+      client.to(`transaction-${data.transactionId}`).emit('user-status', {
+        userId: data.userId,
+        online: true,
+      });
+    }
+
     return { event: 'joined', data: { transactionId: data.transactionId } };
+  }
+
+  @SubscribeMessage('leave-transaction')
+  handleLeaveTransaction(
+    @MessageBody() data: { transactionId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.leave(`transaction-${data.transactionId}`);
+  }
+
+  @SubscribeMessage('check-presence')
+  handleCheckPresence(
+    @MessageBody() data: { userId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const isOnline = this.userSockets.has(data.userId);
+    client.emit('user-status', { userId: data.userId, online: isOnline });
+  }
+
+  handleDisconnect(client: Socket) {
+    const userId = client.data.userId;
+    const transactionId = client.data.transactionId;
+
+    if (userId) {
+      this.userSockets.delete(userId);
+
+      if (transactionId) {
+        // Notificar al otro usuario que este se desconectó
+        client.to(`transaction-${transactionId}`).emit('user-status', {
+          userId,
+          online: false,
+        });
+      }
+    }
   }
 
   @SubscribeMessage('send-message')
@@ -47,9 +99,7 @@ export class ChatGateway {
       data.senderId,
       data.content,
     );
-
     this.server.to(`transaction-${data.transactionId}`).emit('new-message', message);
-
     return message;
   }
 

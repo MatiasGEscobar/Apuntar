@@ -22,9 +22,11 @@ export default function TransactionDetailPage() {
   const [review, setReview] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, isConnected } = useChat(
+
+  const { messages, sendMessage, isConnected, otherUserOnline } = useChat(
     params.id as string,
-    currentUser?.id || ''
+    currentUser?.id || '',
+  transaction ? (transaction.buyerId === currentUser?.id ? transaction.seller.id : transaction.buyer.id) : '',
   );
 
   useEffect(() => {
@@ -225,11 +227,14 @@ const handleCancelTransaction = async () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className="text-[#555555] font-rajdhani text-xs uppercase tracking-wider">
-                  {isConnected ? 'Conectado' : 'Desconectado'}
-                </span>
-              </div>
+                <div className={`w-1.5 h-1.5 rounded-full ${otherUserOnline ? 'bg-green-500' : 'bg-[#555555]'}`} />
+                  <span className="text-[#555555] font-rajdhani text-xs uppercase tracking-wider">
+                    {otherUserOnline
+                    ? `${otherUser.firstName} en línea`
+                    : `${otherUser.firstName} desconectado`
+                    }
+                  </span>
+                </div>
             </div>
 
             {/* Mensajes */}
