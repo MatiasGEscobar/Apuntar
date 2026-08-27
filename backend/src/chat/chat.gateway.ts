@@ -24,10 +24,21 @@ export class ChatGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  // Mapa de userId → socketId
   private userSockets = new Map<string, string>();
 
   constructor(private readonly chatService: ChatService) {}
+
+  // 👇 Nuevo: se llama una sola vez al conectar, sin importar la página
+  @SubscribeMessage('register-user')
+  handleRegisterUser(
+    @MessageBody() data: { userId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!data.userId) return;
+    client.join(`user-${data.userId}`);
+    this.userSockets.set(data.userId, client.id);
+    client.data.userId = data.userId;
+  }
 
   @SubscribeMessage('join-transaction')
   handleJoinTransaction(
@@ -36,17 +47,11 @@ export class ChatGateway implements OnGatewayDisconnect {
   ) {
     client.join(`transaction-${data.transactionId}`);
 
-    // Registrar usuario conectado
     if (data.userId) {
+      // Redundante con register-user, pero lo dejamos por compatibilidad
       this.userSockets.set(data.userId, client.id);
       client.data.userId = data.userId;
       client.data.transactionId = data.transactionId;
-
-      // Notificar al otro usuario en la sala que este entró
-      client.to(`transaction-${data.transactionId}`).emit('user-status', {
-        userId: data.userId,
-        online: true,
-      });
     }
 
     return { event: 'joined', data: { transactionId: data.transactionId } };
@@ -71,18 +76,10 @@ export class ChatGateway implements OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     const userId = client.data.userId;
-    const transactionId = client.data.transactionId;
-
     if (userId) {
       this.userSockets.delete(userId);
-
-      if (transactionId) {
-        // Notificar al otro usuario que este se desconectó
-        client.to(`transaction-${transactionId}`).emit('user-status', {
-          userId,
-          online: false,
-        });
-      }
+      // Avisamos globalmente que este usuario se desconectó de verdad
+      this.server.emit('user-status', { userId, online: false });
     }
   }
 
@@ -91,6 +88,7 @@ export class ChatGateway implements OnGatewayDisconnect {
     @MessageBody() data: {
       transactionId: string;
       senderId: string;
+      recipientId: string; // 👈 nuevo campo requerido
       content: string;
     },
   ) {
@@ -99,7 +97,13 @@ export class ChatGateway implements OnGatewayDisconnect {
       data.senderId,
       data.content,
     );
-    this.server.to(`transaction-${data.transactionId}`).emit('new-message', message);
+
+    // Emitimos a las salas personales de ambos: llega sin importar la página
+    this.server
+      .to(`user-${data.senderId}`)
+      .to(`user-${data.recipientId}`)
+      .emit('new-message', message);
+
     return message;
   }
 

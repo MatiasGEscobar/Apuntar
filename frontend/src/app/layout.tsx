@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '../context/AuthContext';
+import { SocketProvider } from '../context/SocketProvider';
 
 export const metadata: Metadata = {
   title: "Academia Apuntar",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="es" className="h-full">
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-[#e8e8e8]">
         <AuthProvider>
+          <SocketProvider>
           {children}
           <Toaster
             position="bottom-right"
@@ -50,6 +52,7 @@ export default function RootLayout({
               },
             }}
           />
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

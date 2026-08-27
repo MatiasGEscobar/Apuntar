@@ -1,67 +1,54 @@
-import { useState, useEffect } from 'react';
-import { resetSocket, getSocket } from '../lib/socket';
+import { useState, useEffect, useCallback } from 'react';
+import { useSocket } from '../context/SocketProvider';
 import { Message } from '../types/transaction.types';
 
 export const useChat = (transactionId: string, userId: string, otherUserId: string) => {
+  const { socket, isConnected } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [otherUserOnline, setOtherUserOnline] = useState(false);
 
   useEffect(() => {
-    if (!transactionId || !userId) return;
+    if (!socket || !transactionId || !userId) return;
 
-    const socket = resetSocket();
-    socket.connect();
-
-    socket.on('connect', () => {
-      setIsConnected(true);
+    const joinAndLoad = () => {
       socket.emit('join-transaction', { transactionId, userId });
       socket.emit('get-messages', { transactionId }, (response: Message[]) => {
         if (Array.isArray(response)) setMessages(response);
       });
-      // Verificar si el otro usuario ya está conectado
       socket.emit('check-presence', { userId: otherUserId });
-    });
+    };
 
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-      setOtherUserOnline(false);
-    });
+    if (socket.connected) joinAndLoad();
+    else socket.once('connect', joinAndLoad);
 
-    socket.on('connect_error', () => {
-      setIsConnected(false);
-    });
+    const handleNewMessage = (message: Message) => {
+      setMessages((prev) => [...prev, message]); // el sonido ya lo maneja SocketProvider
+    };
 
-    socket.on('new-message', (message: Message) => {
-      setMessages((prev) => [...prev, message]);
-      if (message.senderId !== userId) {
-        try {
-          const audio = new Audio('/sounds/message.mp3');
-          audio.volume = 0.5;
-          audio.play().catch(() => {});
-        } catch {}
-      }
-    });
+    const handleUserStatus = (data: { userId: string; online: boolean }) => {
+      if (data.userId === otherUserId) setOtherUserOnline(data.online);
+    };
 
-    socket.on('user-status', (data: { userId: string; online: boolean }) => {
-      if (data.userId === otherUserId) {
-        setOtherUserOnline(data.online);
-      }
-    });
+    socket.on('new-message', handleNewMessage);
+    socket.on('user-status', handleUserStatus);
 
     return () => {
       socket.emit('leave-transaction', { transactionId });
-      socket.removeAllListeners();
-      socket.disconnect();
+      socket.off('new-message', handleNewMessage);
+      socket.off('user-status', handleUserStatus);
+      socket.off('connect', joinAndLoad);
+      // NO desconectamos el socket: es compartido con toda la app
     };
-  }, [transactionId, userId, otherUserId]);
+  }, [socket, transactionId, userId, otherUserId]);
 
-  const sendMessage = (content: string) => {
-    const currentSocket = getSocket();
-    if (currentSocket.connected) {
-      currentSocket.emit('send-message', { transactionId, senderId: userId, content });
-    }
-  };
+  const sendMessage = useCallback(
+    (content: string) => {
+      if (socket?.connected) {
+        socket.emit('send-message', { transactionId, senderId: userId, recipientId: otherUserId, content });
+      }
+    },
+    [socket, transactionId, userId, otherUserId]
+  );
 
   return { messages, sendMessage, isConnected, otherUserOnline };
 };

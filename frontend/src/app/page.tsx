@@ -1,34 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import CoursesSection from '../components/CoursesSection';
-import Logo from '../components/logo';
+import LandingNavbar from '../components/LandingNavbar';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] font-rajdhani">
 
       {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-[#888888] hover:text-[#e8e8e8] font-tactical text-sm tracking-wider uppercase transition-colors"
-            >
-              Ingresar
-            </Link>
-            <Link
-              href="/register"
-              className="btn-tactical text-sm py-2 px-5"
-            >
-              Registrarse
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNavbar />
 
       {/* HERO */}
       <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
