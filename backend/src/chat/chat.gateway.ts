@@ -38,6 +38,7 @@ export class ChatGateway implements OnGatewayDisconnect {
     client.join(`user-${data.userId}`);
     this.userSockets.set(data.userId, client.id);
     client.data.userId = data.userId;
+    console.log('[register-user]', data.userId, '→ mapa ahora:', [...this.userSockets.keys()]);
 
     this.server.emit('user-status', { userId: data.userId, online: true });
   }
@@ -73,6 +74,7 @@ export class ChatGateway implements OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     const isOnline = this.userSockets.has(data.userId);
+    console.log('[check-presence] preguntan por', data.userId, '→', isOnline, '| mapa:', [...this.userSockets.keys()]);
     client.emit('user-status', { userId: data.userId, online: isOnline });
   }
 
