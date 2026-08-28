@@ -38,6 +38,8 @@ export class ChatGateway implements OnGatewayDisconnect {
     client.join(`user-${data.userId}`);
     this.userSockets.set(data.userId, client.id);
     client.data.userId = data.userId;
+
+    this.server.emit('user-status', { userId: data.userId, online: true });
   }
 
   @SubscribeMessage('join-transaction')

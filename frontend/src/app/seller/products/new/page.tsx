@@ -6,10 +6,9 @@ import { productsService } from '../../../../lib/products';
 import { authService } from '../../../../lib/auth';
 import { ProductCategory, ProductCondition } from '../../../../types/product.types';
 import { UserRole } from '../../../../types/user.types';
-import { ArrowLeft } from 'lucide-react';
-import Logo from '../../../../components/logo';
 import ImageUpload from '../../../../components/upload/ImageUpload';
 import toast from 'react-hot-toast';
+import AppNavbar from '../../../../components/AppNavbar';
 
 const PROVINCIAS = [
   'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
@@ -73,18 +72,7 @@ export default function NewProductPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/seller/products')}
-            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Mis productos
-          </button>
-          <Logo size="sm" />
-        </div>
-      </nav>
+      <AppNavbar backLabel="Mis productos" backHref="/seller/products" />
 
       {/* Header */}
       <div className="border-b border-[#333333] bg-[#111111]">

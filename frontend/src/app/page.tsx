@@ -1,14 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import CoursesSection from '../components/CoursesSection';
-import LandingNavbar from '../components/LandingNavbar';
+import AppNavbar from '../components/AppNavbar';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] font-rajdhani">
 
       {/* NAVBAR */}
-      <LandingNavbar />
+      <AppNavbar showAuthLinksWhenLoggedOut />
 
       {/* HERO */}
       <section className="relative min-h-screen flex items-center overflow-hidden pt-20">

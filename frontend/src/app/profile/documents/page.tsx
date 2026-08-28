@@ -7,8 +7,8 @@ import ImageUpload from '../../../components/upload/ImageUpload';
 import { Upload, CheckCircle, Clock, XCircle, ArrowLeft, FileText } from 'lucide-react';
 import api from '../../../lib/api';
 import { UserStatus } from '../../../types/user.types';
-import Logo from '../../../components/logo';
 import toast from 'react-hot-toast';
+import AppNavbar from '../../../components/AppNavbar';
 
 export default function DocumentsUploadPage() {
   const router = useRouter();
@@ -116,18 +116,7 @@ export default function DocumentsUploadPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/products')}
-            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Ver catálogo
-          </button>
-          <Logo size="sm" />
-        </div>
-      </nav>
+      <AppNavbar backLabel="Ver catálogo" backHref="/products" />
 
       {/* Header */}
       <div className="border-b border-[#333333] bg-[#111111]">

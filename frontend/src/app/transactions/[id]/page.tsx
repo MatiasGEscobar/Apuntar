@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { transactionsService } from '../../../lib/transactions';
-import { authService } from '../../../lib/auth';
+import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../hooks/useChat';
 import { Transaction, TransactionStatus } from '../../../types/transaction.types';
-import { ArrowLeft, MessageSquare, Send, CheckCircle, Package, Star, Shield, AlertTriangle } from 'lucide-react';
-import Logo from '../../../components/logo';
+import { MessageSquare, Send, CheckCircle, Package, Star, Shield, AlertTriangle } from 'lucide-react';
+import AppNavbar from '../../../components/AppNavbar';
 import toast from 'react-hot-toast';
 
 export default function TransactionDetailPage() {
@@ -15,7 +15,7 @@ export default function TransactionDetailPage() {
   const router = useRouter();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser] = useState(authService.getCurrentUser());
+  const { user: currentUser } = useAuth();
   const [messageInput, setMessageInput] = useState('');
   const [showRating, setShowRating] = useState(false);
   const [rating, setRating] = useState(0);
@@ -117,18 +117,7 @@ const handleCancelTransaction = async () => {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/transactions')}
-            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Mis transacciones
-          </button>
-          <Logo size="sm" />
-        </div>
-      </nav>
+      <AppNavbar backLabel="Mis transacciones" backHref="/transactions" />
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-3 gap-6">

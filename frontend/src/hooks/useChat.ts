@@ -1,11 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../context/SocketProvider';
 import { Message } from '../types/transaction.types';
+import { useNotifications } from '../context/NotificationsProvider';
 
 export const useChat = (transactionId: string, userId: string, otherUserId: string) => {
   const { socket, isConnected } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const [otherUserOnline, setOtherUserOnline] = useState(false);
+  const { setActiveTransaction } = useNotifications();
+
+  useEffect(() => {
+  if (!transactionId) return;
+  setActiveTransaction(transactionId);
+  return () => setActiveTransaction(null);
+}, [transactionId, setActiveTransaction]);
 
   useEffect(() => {
     if (!socket || !transactionId || !userId) return;

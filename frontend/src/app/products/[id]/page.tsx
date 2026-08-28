@@ -6,9 +6,9 @@ import { productsService } from '../../../lib/products';
 import { authService } from '../../../lib/auth';
 import { transactionsService } from '../../../lib/transactions';
 import { Product } from '../../../types/product.types';
-import { ArrowLeft, MapPin, Star, Eye, ShoppingCart, AlertTriangle, Shield } from 'lucide-react';
-import Logo from '../../../components/logo';
+import { MapPin, Star, ShoppingCart, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import AppNavbar from '../../../components/AppNavbar';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -71,18 +71,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/products')}
-            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al catálogo
-          </button>
-          <Logo size="sm" />
-        </div>
-      </nav>
+      <AppNavbar backLabel="Volver al catálogo" backHref="/products" />
 
       <div className="max-w-6xl mx-auto px-6 py-10">
 

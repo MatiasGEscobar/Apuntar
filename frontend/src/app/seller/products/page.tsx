@@ -6,8 +6,8 @@ import { productsService } from '../../../lib/products';
 import { authService } from '../../../lib/auth';
 import { Product, ProductStatus } from '../../../types/product.types';
 import { UserRole } from '../../../types/user.types';
-import { Plus, Package, LogOut, Eye } from 'lucide-react';
-import Logo from '../../../components/logo';
+import { Plus, Package, Eye } from 'lucide-react';
+import AppNavbar from '../../../components/AppNavbar';
 import VerificationBanner from '../../../components/VerificationBanner';
 
 export default function SellerProductsPage() {
@@ -54,25 +54,7 @@ export default function SellerProductsPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Logo size="sm" />
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/products')}
-              className="text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-            >
-              Ver catálogo
-            </button>
-            <button
-              onClick={() => authService.logout()}
-              className="flex items-center gap-2 text-[#888888] hover:text-red-400 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </nav>
+      <AppNavbar />
 
       <VerificationBanner />
 

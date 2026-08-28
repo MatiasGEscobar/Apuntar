@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsService } from '../../lib/products';
-import { authService } from '../../lib/auth';
 import { Product, ProductCategory } from '../../types/product.types';
-import { Search, MapPin, Star, Eye, ShoppingCart, LogOut, ChevronDown } from 'lucide-react';
-import Logo from '../../components/logo';
+import { Search, MapPin, Star, Eye, ShoppingCart } from 'lucide-react';
 import VerificationBanner from '../../components/VerificationBanner';
+import AppNavbar from '../../components/AppNavbar';
+import { useAuth } from '../../context/AuthContext';
+
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -15,12 +16,11 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user: currentUser } = useAuth();
 
-  useEffect(() => {
-    setCurrentUser(authService.getCurrentUser());
-    loadProducts();
-  }, [filterCategory, searchTerm]);
+useEffect(() => {
+  loadProducts();
+}, [filterCategory, searchTerm]);
 
   const loadProducts = async () => {
     try {
@@ -51,70 +51,7 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <Logo size="sm" />
-
-            <div className="flex items-center gap-6">
-              {currentUser ? (
-                <>
-                  <span className="text-[#888888] font-rajdhani text-sm hidden md:block">
-                    OP: <span className="text-[#e8e8e8]">{currentUser.firstName} {currentUser.lastName}</span>
-                  </span>
-
-                  {currentUser.role === 'admin' && (
-                    <button
-                      onClick={() => router.push('/admin/users')}
-                      className="text-[#c9a227] font-rajdhani text-sm tracking-wider hover:text-[#e8c547] transition-colors uppercase"
-                    >
-                      Panel Admin
-                    </button>
-                  )}
-
-                  {currentUser.role === 'seller' && (
-                    <button
-                      onClick={() => router.push('/seller/products')}
-                      className="text-[#c9a227] font-rajdhani text-sm tracking-wider hover:text-[#e8c547] transition-colors uppercase"
-                    >
-                      Mis Productos
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => router.push('/transactions')}
-                    className="text-[#888888] font-rajdhani text-sm tracking-wider hover:text-[#e8e8e8] transition-colors uppercase"
-                  >
-                    Transacciones
-                  </button>
-
-                  <button
-                    onClick={() => authService.logout()}
-                    className="flex items-center gap-2 text-[#888888] hover:text-red-400 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="btn-tactical-outline text-sm py-2 px-5"
-                  >
-                    INGRESAR
-                  </button>
-                  <button
-                    onClick={() => router.push('/register')}
-                    className="btn-tactical text-sm py-2 px-5"
-                  >
-                    REGISTRARSE
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AppNavbar showAuthLinksWhenLoggedOut />
 
       {/* Banner verificación */}
       <VerificationBanner />

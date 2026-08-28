@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { transactionsService } from '../../../lib/transactions';
 import { authService } from '../../../lib/auth';
 import { Transaction } from '../../../types/transaction.types';
-import { ArrowLeft, Shield, AlertTriangle, CheckCircle, Lock, CreditCard } from 'lucide-react';
-import Logo from '../../../components/logo';
+import { Shield, AlertTriangle, CheckCircle, Lock, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../..//lib/api';
+import AppNavbar from '../../../components/AppNavbar';
 
 declare global {
   interface Window { MercadoPago: any; }
@@ -159,20 +159,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Navbar */}
-      <nav className="border-b border-[#333333] bg-[#0a0a0a]/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push(`/products/${transaction.productId}`)}
-            className="flex items-center gap-2 text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al producto
-          </button>
-          <Logo size="sm" />
-        </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-6 py-10">
+      <AppNavbar backLabel="Volver al producto" backHref={`/products/${transaction.productId}`} />
 
         {/* Header */}
         <div className="mb-10 flex items-center gap-5">
@@ -359,6 +346,5 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
