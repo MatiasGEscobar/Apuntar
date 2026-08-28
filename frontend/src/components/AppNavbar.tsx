@@ -21,10 +21,19 @@ export default function AppNavbar({
   showAuthLinksWhenLoggedOut = false,
 }: AppNavbarProps) {
   const { user, isLoading, logout } = useAuth();
-  const { totalUnread } = useNotifications();
+  const { totalUnread, unreadCounts  } = useNotifications();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleChatIconClick = () => {
+  const conversationsWithUnread = Object.keys(unreadCounts);
+  if (conversationsWithUnread.length === 1) {
+    router.push(`/transactions/${conversationsWithUnread[0]}`);
+  } else {
+    router.push('/transactions');
+  }
+};
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -59,7 +68,7 @@ export default function AppNavbar({
           ) : user ? (
             <>
               <button
-                onClick={() => router.push('/transactions')}
+                onClick={handleChatIconClick}
                 className="relative text-[#888888] hover:text-[#c9a227] transition-colors"
               >
                 <MessageSquare className="w-5 h-5" />

@@ -77,7 +77,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             </p>
           </div>
         ),
-        { duration: 5000 }
+        { duration: 5000, id: `msg-${message.transactionId}` }
       );
     };
 
