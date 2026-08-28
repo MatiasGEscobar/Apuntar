@@ -40,12 +40,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     const socket = getSocket();
     socketRef.current = socket;
-    if (!socket.connected) socket.connect();
-
-    const handleConnect = () => {
-      setIsConnected(true);
-      socket.emit('register-user', { userId: user.id });
-    }
+    
+    const registerAndSetConnected = () => {
+    setIsConnected(true);
+    socket.emit('register-user', { userId: user.id });
+  };
     
     const handleDisconnect = () => setIsConnected(false);
 
@@ -60,16 +59,19 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    socket.on('connect', handleConnect);
+    socket.on('connect', registerAndSetConnected);
     socket.on('disconnect', handleDisconnect);
     socket.on('new-message', handleNewMessage);
-    if (socket.connected) setIsConnected(true);
 
+    if (socket.connected) {
+    registerAndSetConnected(); 
+  } else {
+    socket.connect();
+  }
     return () => {
-      socket.off('connect', handleConnect);
+      socket.off('connect', registerAndSetConnected);
       socket.off('disconnect', handleDisconnect);
       socket.off('new-message', handleNewMessage);
-      // OJO: nunca desconectamos acá, el socket vive mientras dure la sesión
     };
   }, [user, isLoading]);
 

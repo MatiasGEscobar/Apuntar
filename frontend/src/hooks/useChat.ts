@@ -3,6 +3,7 @@ import { useSocket } from '../context/SocketProvider';
 import { Message } from '../types/transaction.types';
 import { useNotifications } from '../context/NotificationsProvider';
 
+
 export const useChat = (transactionId: string, userId: string, otherUserId: string) => {
   const { socket, isConnected } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
