@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import Logo from '../../../components/logo';
+import { useAuth } from '../../../context/AuthContext'; 
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function RegisterPage() {
     phone: '',
     role: UserRole.BUYER,
   });
+  const { refreshUser } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +29,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authService.register(formData);
+      refreshUser();
       router.push('/profile/documents');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse');

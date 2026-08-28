@@ -6,9 +6,11 @@ import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import Logo from '../../../components/logo';
 import Image from 'next/image';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await authService.login(formData);
+      refreshUser();
       if (response.user.role === UserRole.ADMIN) router.push('/admin/users');
       else if (response.user.role === UserRole.SELLER) router.push('/seller/products');
       else router.push('/products');

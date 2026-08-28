@@ -2,10 +2,12 @@
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '../../../../context/AuthContext';
 
 function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -16,6 +18,7 @@ function GoogleCallbackContent() {
         const user = JSON.parse(decodeURIComponent(userStr));
         localStorage.setItem('access_token', token);
         localStorage.setItem('user', JSON.stringify(user));
+        refreshUser(); //
 
         if (user.role === 'admin') router.push('/admin/users');
         else if (user.role === 'seller') router.push('/seller/products');
