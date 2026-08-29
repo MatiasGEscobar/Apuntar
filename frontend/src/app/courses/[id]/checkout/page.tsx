@@ -17,6 +17,7 @@ export default function CourseCheckoutPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const userRef = useRef(user);
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -25,6 +26,10 @@ export default function CourseCheckoutPage() {
   const participantNameRef = useRef(''); // evita closure stale en onSubmit de MP
   const mpRef = useRef<any>(null);
   const cardFormRef = useRef<any>(null);
+
+  useEffect(() => {
+  userRef.current = user; 
+}, [user]);
 
   useEffect(() => {
     participantNameRef.current = participantName;
@@ -89,6 +94,11 @@ export default function CourseCheckoutPage() {
         onSubmit: async (event: any) => {
           event.preventDefault();
 
+          if (!userRef.current?.id) {
+            toast.error('Tenés que iniciar sesión para inscribirte');
+            return;
+            }
+
           if (!participantNameRef.current.trim()) {
             toast.error('Ingresá el nombre del participante');
             return;
@@ -107,7 +117,7 @@ export default function CourseCheckoutPage() {
               buyerEmail: user?.email || '',
               identificationType,
               identificationNumber,
-              userId: user?.id,
+              userId: userRef.current?.id,
             });
 
             if (result.data.status === 'approved') {
