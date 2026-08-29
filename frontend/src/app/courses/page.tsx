@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { coursesService, Course } from '../../lib/courses';
-import { authService } from '../../lib/auth';
-import { MapPin, Clock, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AppNavbar from '../../components/AppNavbar';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CoursesPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser] = useState(authService.getCurrentUser());
+  const { user: currentUser } = useAuth();
 
   useEffect(() => {
     loadCourses();

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { productsService } from '../../../lib/products';
 import { authService } from '../../../lib/auth';
+import { useAuth } from '../../../context/AuthContext';
 import { transactionsService } from '../../../lib/transactions';
 import { Product } from '../../../types/product.types';
 import { MapPin, Star, ShoppingCart, AlertTriangle } from 'lucide-react';
@@ -17,11 +18,10 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser] = useState(authService.getCurrentUser());
+  const { user: currentUser } = useAuth();
+  const isAuthenticated = !!currentUser;
 
   useEffect(() => {
-    setIsAuthenticated(authService.isAuthenticated());
     if (params.id) loadProduct(params.id as string);
   }, [params.id]);
 

@@ -13,7 +13,8 @@ export class PaymentsService {
   }
 
   async processPayment(data: {
-    transactionId: string;
+    externalReference: string;
+    description: string;
     amount: number;
     token: string;
     paymentMethodId: string;
@@ -29,7 +30,7 @@ export class PaymentsService {
         body: {
           transaction_amount: data.amount,
           token: data.token,
-          description: `Transacción ${data.transactionId}`,
+          description: data.description,
           installments: data.installments,
           payment_method_id: data.paymentMethodId,
           payer: {
@@ -39,7 +40,7 @@ export class PaymentsService {
               number: data.identificationNumber,
             },
           },
-          external_reference: data.transactionId,
+          external_reference: data.externalReference,
           notification_url: `${this.configService.get('BACKEND_URL')}/api/payments/webhook`,
         },
       });
