@@ -230,29 +230,6 @@ export default function CourseCheckoutPage() {
                 <Users className="w-4 h-4 text-[#c9a227]" />
                 <span className="font-tactical text-sm tracking-wider text-[#888888]">PARTICIPANTE</span>
               </div>
-              <div className="p-5">
-                <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
-                  Nombre completo del participante *
-                </label>
-                <input
-                  type="text"
-                  value={participantName}
-                  onChange={(e) => setParticipantName(e.target.value)}
-                  className="input-tactical"
-                  placeholder="Nombre y apellido de quien asiste"
-                />
-                <p className="text-[#555555] font-rajdhani text-xs mt-2">
-                  Podés inscribir a más de una persona en compras separadas — cada una necesita un nombre distinto.
-                </p>
-              </div>
-            </div>
-
-            {/* Nombre del participante */}
-            <div className="border border-[#333333] bg-[#111111]">
-              <div className="px-5 py-3 border-b border-[#333333] flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#c9a227]" />
-                <span className="font-tactical text-sm tracking-wider text-[#888888]">PARTICIPANTE</span>
-              </div>
               <div className="p-5 space-y-4">
                 <div>
                   <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
