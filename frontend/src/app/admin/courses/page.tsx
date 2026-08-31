@@ -278,6 +278,8 @@ export default function AdminCoursesPage() {
         )}
 
         {/* Lista de cursos */}
+        {!showForm && (
+        <>
         {courses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 border border-[#333333]">
             <p className="text-[#888888] font-rajdhani tracking-widest text-sm uppercase">No hay cursos creados</p>
@@ -363,6 +365,8 @@ export default function AdminCoursesPage() {
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
