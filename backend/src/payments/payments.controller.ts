@@ -56,19 +56,23 @@ export class PaymentsController {
     @Param('courseId') courseId: string,
     @Body() body: {
       participantName: string;
+      participantDni: string;   
+      acceptedTerms: boolean;
       token: string;
       paymentMethodId: string;
       installments: number;
       buyerEmail: string;
       identificationType: string;
       identificationNumber: string;
-      userId: string; // quién está pagando (comprador logueado)
+      userId: string; 
     },
   ) {
     const enrollment = await this.coursesService.createEnrollment(
       courseId,
       body.userId,
       body.participantName,
+      body.participantDni,
+      body.acceptedTerms,
     );
 
     const result = await this.paymentsService.processPayment({

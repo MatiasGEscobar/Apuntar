@@ -15,6 +15,7 @@ export interface Course {
   isActive: boolean;
   location: string;
   createdAt: string;
+  termsAndConditions?: string;
 }
 
 export const coursesService = {

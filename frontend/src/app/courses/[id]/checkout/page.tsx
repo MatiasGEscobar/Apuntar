@@ -26,6 +26,15 @@ export default function CourseCheckoutPage() {
   const participantNameRef = useRef(''); // evita closure stale en onSubmit de MP
   const mpRef = useRef<any>(null);
   const cardFormRef = useRef<any>(null);
+  const [participantDni, setParticipantDni] = useState('');
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const participantDniRef = useRef('');
+  const acceptedTermsRef = useRef(false);
+
+
+  useEffect(() => { participantDniRef.current = participantDni; }, [participantDni]);
+  useEffect(() => { acceptedTermsRef.current = acceptedTerms; }, [acceptedTerms]);  
 
   useEffect(() => {
   userRef.current = user; 
@@ -99,8 +108,17 @@ export default function CourseCheckoutPage() {
             return;
             }
 
-          if (!participantNameRef.current.trim()) {
-            toast.error('Ingresá el nombre del participante');
+          if (participantNameRef.current.trim().split(/\s+/).length < 2) {
+            toast.error('Ingresá nombre y apellido completos');
+            return;
+          }
+
+          if (!participantDniRef.current.trim()) {
+            toast.error('Ingresá el DNI del participante');
+            return;
+          }
+          if (!acceptedTermsRef.current) {
+            toast.error('Tenés que aceptar los términos y condiciones del curso');
             return;
           }
 
@@ -111,6 +129,8 @@ export default function CourseCheckoutPage() {
           try {
             const result = await api.post(`/payments/process-course/${course!.id}`, {
               participantName: participantNameRef.current.trim(),
+              participantDni: participantDniRef.current.trim(),
+              acceptedTerms: acceptedTermsRef.current,
               token,
               paymentMethodId,
               installments: Number(installments),
@@ -226,6 +246,96 @@ export default function CourseCheckoutPage() {
                 </p>
               </div>
             </div>
+
+            {/* Nombre del participante */}
+            <div className="border border-[#333333] bg-[#111111]">
+              <div className="px-5 py-3 border-b border-[#333333] flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#c9a227]" />
+                <span className="font-tactical text-sm tracking-wider text-[#888888]">PARTICIPANTE</span>
+              </div>
+              <div className="p-5 space-y-4">
+                <div>
+                  <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
+                    Nombre y apellido del participante *
+                  </label>
+                  <input
+                    type="text"
+                    value={participantName}
+                    onChange={(e) => setParticipantName(e.target.value)}
+                    className="input-tactical"
+                    placeholder="Nombre y apellido de quien asiste"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
+                    DNI del participante *
+                  </label>
+                  <input
+                    type="text"
+                    value={participantDni}
+                    onChange={(e) => setParticipantDni(e.target.value)}
+                    className="input-tactical"
+                    placeholder="12345678"
+                  />
+                </div>
+                <p className="text-[#555555] font-rajdhani text-xs">
+                  Podés inscribir a más de una persona en compras separadas — cada una necesita un DNI distinto.
+                </p>
+                            
+                {/* Términos y condiciones */}
+                <div className="flex items-start gap-3 pt-2 border-t border-[#333333]">
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="w-4 h-4 mt-1 accent-[#c9a227]"
+                  />
+                  <label htmlFor="acceptTerms" className="text-[#888888] font-rajdhani text-sm">
+                    Leí y acepto los{' '}
+                    <button
+                      type="button"
+                      onClick={() => setTermsOpen(true)}
+                      className="text-[#c9a227] hover:text-[#e8c547] underline"
+                    >
+                      términos y condiciones
+                    </button>{' '}
+                    de este curso *
+                  </label>
+                </div>
+              </div>
+            </div>
+                            
+            {/* Modal de términos */}
+            {termsOpen && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-[#111111] border border-[#333333] w-full max-w-2xl max-h-[80vh] flex flex-col">
+                  <div className="px-6 py-4 border-b border-[#333333] flex items-center justify-between">
+                    <h2 className="font-tactical text-xl text-[#e8e8e8] tracking-wide">
+                      TÉRMINOS Y CONDICIONES
+                    </h2>
+                    <button onClick={() => setTermsOpen(false)} className="text-[#888888] hover:text-[#e8e8e8]">✕</button>
+                  </div>
+                  <div
+                    className="p-6 overflow-y-auto text-[#e8e8e8] font-rajdhani text-sm leading-relaxed prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: course.termsAndConditions || '<p>Este curso no tiene términos y condiciones cargados.</p>',
+                    }}
+                  />
+                  <div className="p-4 border-t border-[#333333]">
+                    <button
+                      onClick={() => {
+                        setAcceptedTerms(true);
+                        setTermsOpen(false);
+                      }}
+                      className="btn-tactical w-full py-3"
+                    >
+                      LEÍ Y ACEPTO
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Formulario de pago MP */}
             <div className="border border-[#333333] bg-[#111111]">

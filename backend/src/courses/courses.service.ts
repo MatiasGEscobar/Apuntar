@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
@@ -60,16 +60,23 @@ export class CoursesService {
     courseId: string,
     userId: string,
     participantName: string,
+    participantDni: string,
+    acceptedTerms: boolean,
   ): Promise<CourseEnrollment> {
     const course = await this.findOne(courseId);
 
-    const normalized = participantName.trim().toLowerCase();
+    if (!acceptedTerms) {
+    throw new BadRequestException('Debés aceptar los términos y condiciones del curso');
+  }
+
+    const dniTrimmed = participantDni.trim();
+    // const normalized = participantName.trim().toLowerCase();
     const existing = await this.enrollmentsRepository.findOne({
-      where: { courseId, participantNameNormalized: normalized },
+      where: { courseId, participantDni: dniTrimmed },
     });
     if (existing && existing.status !== EnrollmentStatus.CANCELLED) {
       throw new ConflictException(
-        'Ya existe una inscripción activa con ese nombre de participante para este curso',
+        'Ya existe una inscripción activa con ese DNI para este curso',
       );
     }
 
@@ -79,6 +86,9 @@ export class CoursesService {
       courseId,
       userId,
       participantName: participantName.trim(),
+      participantDni: dniTrimmed,
+      acceptedTerms: true,
+      termsAcceptedAt: new Date(),
       amount,
       status: EnrollmentStatus.PENDING,
     });

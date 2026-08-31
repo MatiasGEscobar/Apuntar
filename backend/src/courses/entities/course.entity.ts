@@ -46,4 +46,7 @@ export class Course {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ type: 'text', nullable: true })
+  termsAndConditions: string;
 }

@@ -4,8 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 
 export enum EnrollmentStatus {
@@ -28,9 +26,14 @@ export class CourseEnrollment {
   @Column()
   participantName: string;
 
-  // Usado solo para chequear duplicados sin importar mayúsculas/espacios
   @Column()
-  participantNameNormalized: string;
+  participantDni: string; // 👈 nuevo, reemplaza participantNameNormalized
+
+  @Column({ default: false })
+  acceptedTerms: boolean; // 👈 nuevo
+
+  @Column({ type: 'timestamp', nullable: true })
+  termsAcceptedAt: Date; // 👈 nuevo
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
@@ -46,10 +49,4 @@ export class CourseEnrollment {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  normalizeParticipantName() {
-    this.participantNameNormalized = this.participantName.trim().toLowerCase();
-  }
 }

@@ -10,6 +10,7 @@ import Logo from '../../../components/logo';
 import ImageUpload from '../../../components/upload/ImageUpload';
 import toast from 'react-hot-toast';
 import AdminNavbar from '../../../components/AdminNavbar';
+import mammoth from 'mammoth';
 
 const emptyForm = {
   title: '',
@@ -24,6 +25,7 @@ const emptyForm = {
   availableSpots: '',
   location: '',
   isActive: true,
+  termsAndConditions: '',
 };
 
 export default function AdminCoursesPage() {
@@ -68,6 +70,7 @@ export default function AdminCoursesPage() {
       availableSpots: String(course.availableSpots),
       location: course.location || '',
       isActive: course.isActive,
+      termsAndConditions: course.termsAndConditions || '',
     });
     setShowForm(true);
   };
@@ -80,6 +83,21 @@ export default function AdminCoursesPage() {
       toast.success('Curso eliminado');
     } catch {
       toast.error('Error al eliminar curso');
+    }
+  };
+
+  const handleWordUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      set('termsAndConditions', result.value);
+      toast.success('Documento cargado — revisá el texto antes de guardar');
+    } catch {
+      toast.error('No se pudo leer el archivo Word');
+    } finally {
+      e.target.value = ''; // permite volver a subir el mismo archivo si hace falta
     }
   };
 
@@ -100,6 +118,7 @@ export default function AdminCoursesPage() {
         availableSpots: Number(formData.availableSpots),
         location: formData.location,
         isActive: formData.isActive,
+        termsAndConditions: formData.termsAndConditions || undefined,
       };
 
       if (editingId) {
@@ -309,6 +328,27 @@ export default function AdminCoursesPage() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Términos y condiciones */}
+                  <div>
+                    <h3 className={sectionTitle}>TÉRMINOS Y CONDICIONES DEL CURSO</h3>
+                    <div className="mb-3 flex items-center gap-3">
+                      <label className="btn-tactical-outline text-xs py-2 px-4 cursor-pointer">
+                        SUBIR DESDE WORD (.docx)
+                        <input type="file" accept=".docx" onChange={handleWordUpload} className="hidden" />
+                      </label>
+                      <span className="text-[#555555] font-rajdhani text-xs">
+                        O escribí/editá el texto directamente abajo
+                      </span>
+                    </div>
+                    <textarea
+                      rows={8}
+                      value={formData.termsAndConditions}
+                      onChange={e => set('termsAndConditions', e.target.value)}
+                      className="input-tactical resize-none font-mono text-xs"
+                      placeholder="Términos y condiciones específicos de este curso..."
+                    />
+                  </div>
 
                     <div className="flex gap-3">
                       <button onClick={() => handleEdit(course)} className="btn-tactical-outline text-xs py-2 px-4 flex items-center gap-2">
