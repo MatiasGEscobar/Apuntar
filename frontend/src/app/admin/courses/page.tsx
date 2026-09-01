@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { coursesService, Course } from '../../../lib/courses';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
-import { Plus, Pencil, Trash2, LogOut, Users, Package } from 'lucide-react';
-import Logo from '../../../components/logo';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import ImageUpload from '../../../components/upload/ImageUpload';
 import toast from 'react-hot-toast';
 import AdminNavbar from '../../../components/AdminNavbar';
@@ -25,7 +24,6 @@ const emptyForm = {
   availableSpots: '',
   location: '',
   isActive: true,
-  termsAndConditions: '',
 };
 
 export default function AdminCoursesPage() {
@@ -36,12 +34,20 @@ export default function AdminCoursesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [termsModalCourse, setTermsModalCourse] = useState<Course | null>(null);
+  const [termsDraft, setTermsDraft] = useState('');
+  const [savingTerms, setSavingTerms] = useState(false);
 
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!user || user.role !== UserRole.ADMIN) { router.push('/login'); return; }
     loadCourses();
   }, []);
+
+  const openTermsModal = (course: Course) => {
+    setTermsModalCourse(course);
+    setTermsDraft(course.termsAndConditions || '');
+  };
 
   const loadCourses = async () => {
     try {
@@ -70,7 +76,6 @@ export default function AdminCoursesPage() {
       availableSpots: String(course.availableSpots),
       location: course.location || '',
       isActive: course.isActive,
-      termsAndConditions: course.termsAndConditions || '',
     });
     setShowForm(true);
   };
@@ -86,20 +91,37 @@ export default function AdminCoursesPage() {
     }
   };
 
-  const handleWordUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveTerms = async () => {
+  if (!termsModalCourse) return;
+  setSavingTerms(true);
+  try {
+    const updated = await coursesService.update(termsModalCourse.id, {
+      termsAndConditions: termsDraft,
+    });
+    setCourses((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    toast.success('Términos y condiciones guardados');
+    setTermsModalCourse(null);
+  } catch {
+    toast.error('Error al guardar los términos');
+  } finally {
+    setSavingTerms(false);
+  }
+};
+
+  const handleWordUploadTerms = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-      set('termsAndConditions', result.value);
-      toast.success('Documento cargado — revisá el texto antes de guardar');
-    } catch {
-      toast.error('No se pudo leer el archivo Word');
-    } finally {
-      e.target.value = ''; // permite volver a subir el mismo archivo si hace falta
-    }
-  };
+  if (!file) return;
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer });
+    setTermsDraft(result.value);
+    toast.success('Documento cargado — revisá la vista previa antes de guardar');
+  } catch {
+    toast.error('No se pudo leer el archivo Word');
+  } finally {
+    e.target.value = '';
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +140,6 @@ export default function AdminCoursesPage() {
         availableSpots: Number(formData.availableSpots),
         location: formData.location,
         isActive: formData.isActive,
-        termsAndConditions: formData.termsAndConditions || undefined,
       };
 
       if (editingId) {
@@ -331,30 +352,12 @@ export default function AdminCoursesPage() {
                       ))}
                     </div>
 
-                    {/* Términos y condiciones */}
-                  <div>
-                    <h3 className={sectionTitle}>TÉRMINOS Y CONDICIONES DEL CURSO</h3>
-                    <div className="mb-3 flex items-center gap-3">
-                      <label className="btn-tactical-outline text-xs py-2 px-4 cursor-pointer">
-                        SUBIR DESDE WORD (.docx)
-                        <input type="file" accept=".docx" onChange={handleWordUpload} className="hidden" />
-                      </label>
-                      <span className="text-[#555555] font-rajdhani text-xs">
-                        O escribí/editá el texto directamente abajo
-                      </span>
-                    </div>
-                    <textarea
-                      rows={8}
-                      value={formData.termsAndConditions}
-                      onChange={e => set('termsAndConditions', e.target.value)}
-                      className="input-tactical resize-none font-mono text-xs"
-                      placeholder="Términos y condiciones específicos de este curso..."
-                    />
-                  </div>
-
                     <div className="flex gap-3">
                       <button onClick={() => handleEdit(course)} className="btn-tactical-outline text-xs py-2 px-4 flex items-center gap-2">
                         <Pencil className="w-3 h-3" /> EDITAR
+                      </button>
+                      <button onClick={() => openTermsModal(course)} className="btn-tactical-outline text-xs py-2 px-4 flex items-center gap-2">
+                       📄 TÉRMINOS
                       </button>
                       <button onClick={() => handleDelete(course.id)} className="flex items-center gap-2 border border-red-900 bg-red-950/20 text-red-400 font-tactical text-xs tracking-wider px-4 py-2 hover:bg-red-950/40 transition-colors">
                         <Trash2 className="w-3 h-3" /> ELIMINAR
@@ -369,6 +372,72 @@ export default function AdminCoursesPage() {
         </>
         )}
       </div>
+      {/* Modal de términos y condiciones */}
+      {termsModalCourse && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-[#333333] w-full max-w-3xl max-h-[85vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-[#333333] flex items-center justify-between">
+              <h2 className="font-tactical text-xl text-[#e8e8e8] tracking-wide">
+                TÉRMINOS — {termsModalCourse.title}
+              </h2>
+              <button onClick={() => setTermsModalCourse(null)} className="text-[#888888] hover:text-[#e8e8e8]">✕</button>
+            </div>
+      
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="flex items-center gap-3">
+                <label className="btn-tactical-outline text-xs py-2 px-4 cursor-pointer">
+                  SUBIR DESDE WORD (.docx)
+                  <input type="file" accept=".docx" onChange={handleWordUploadTerms} className="hidden" />
+                </label>
+                <span className="text-[#555555] font-rajdhani text-xs">
+                  O escribí/editá el texto directamente abajo
+                </span>
+              </div>
+      
+              <div>
+                <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
+                  Texto (HTML)
+                </label>
+                <textarea
+                  rows={8}
+                  value={termsDraft}
+                  onChange={(e) => setTermsDraft(e.target.value)}
+                  className="input-tactical resize-none font-mono text-xs"
+                  placeholder="Términos y condiciones de este curso..."
+                />
+              </div>
+      
+              <div>
+                <p className="text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-2">
+                  Vista previa (así lo va a ver el comprador)
+                </p>
+                <div
+                  className="border border-[#333333] bg-[#1a1a1a] p-4 text-[#e8e8e8] font-rajdhani text-sm leading-relaxed prose prose-invert max-w-none min-h-[100px]"
+                  dangerouslySetInnerHTML={{
+                    __html: termsDraft || '<p class="text-[#555555]">Sin contenido todavía.</p>',
+                  }}
+                />
+              </div>
+            </div>
+                
+            <div className="p-4 border-t border-[#333333] flex gap-3">
+              <button
+                onClick={() => setTermsModalCourse(null)}
+                className="btn-tactical-outline flex-1 py-3"
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={handleSaveTerms}
+                disabled={savingTerms}
+                className="btn-tactical flex-1 py-3 disabled:opacity-50"
+              >
+                {savingTerms ? 'GUARDANDO...' : 'GUARDAR TÉRMINOS'}
+              </button>
+            </div>
+          </div>
+        </div>
+)}
     </div>
   );
 }
