@@ -25,6 +25,34 @@ Monorepo con dos carpetas principales:
 
 Rama de trabajo principal: `develop`.
 
+## Instalación y desarrollo local
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run start:dev   # levanta con hot-reload en modo watch
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev          # levanta en modo desarrollo
+```
+
+### Scripts útiles
+
+| Comando | Dónde | Qué hace |
+|---|---|---|
+| `npm run build` | backend / frontend | build de producción |
+| `npm run start:prod` | backend | corre el build compilado |
+| `npm run lint` | backend / frontend | linting |
+| `npm run test` | backend | tests unitarios (Jest) |
+| `npm run test:e2e` | backend | tests end-to-end |
+
 ## Variables de entorno
 
 ### Backend (Render)
