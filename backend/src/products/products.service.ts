@@ -2,15 +2,18 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product, ProductStatus } from './entities/product.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    private usersService: UsersService,
   ) {}
 
   async create(productData: Partial<Product>, userId: string): Promise<Product> {
+    await this.usersService.assertCluValid(userId);
     const product = this.productsRepository.create({
       ...productData,
       sellerId: userId,
