@@ -30,7 +30,6 @@ const sectionTitle = "font-tactical text-lg tracking-wider text-[#c9a227] mb-4 p
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '', category: ProductCategory.PISTOLA, brand: '', model: '',
     caliber: '', serialNumber: '', condition: ProductCondition.NUEVO,
@@ -49,7 +48,6 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       await productsService.create({
@@ -60,7 +58,7 @@ export default function NewProductPage() {
       toast('Producto creado. Pendiente de aprobación.');
       router.push('/seller/products');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear producto');
+      toast.error(err.response?.data?.message || 'Error al crear producto');
     } finally {
       setLoading(false);
     }
@@ -86,14 +84,6 @@ export default function NewProductPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-
-        {error && (
-          <div className="mb-6 border border-red-800 bg-red-950/30 p-4 flex items-center gap-3">
-            <div className="w-1 self-stretch bg-red-500 flex-shrink-0" />
-            <p className="text-red-300 font-rajdhani text-sm">{error}</p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-8">
 
           {/* Información básica */}
@@ -162,7 +152,7 @@ export default function NewProductPage() {
 
               <div>
                 <label className={labelClass}>Precio (ARS) *</label>
-                <input type="number" required min="0" step="1000" value={formData.price}
+                <input type="number" required min="0" value={formData.price}
                   onChange={(e) => set('price', e.target.value)}
                   className="input-tactical" placeholder="450000" />
               </div>
