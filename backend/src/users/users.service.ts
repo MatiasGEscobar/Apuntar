@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -106,5 +106,15 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException('Usuario no encontrado');
     }
+  }
+
+  async assertCluValid(id: string): Promise<User> {
+    const user = await this.findOne(id);
+    if (user.cluExpirationDate && new Date(user.cluExpirationDate) < new Date()) {
+      throw new ForbiddenException(
+        'Tu CLU está vencida. Actualizá tu CLU vigente para poder comprar o vender en la plataforma.',
+      );
+    }
+    return user;
   }
 }

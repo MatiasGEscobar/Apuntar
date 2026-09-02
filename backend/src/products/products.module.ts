@@ -5,9 +5,10 @@ import { ProductsService } from './products.service';
 import { Product } from './entities/product.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), NotificationsModule],
+  imports: [TypeOrmModule.forFeature([Product]), NotificationsModule, UsersModule],
   controllers: [ProductsController],
   providers: [ProductsService, NotificationsService],
   exports: [ProductsService, TypeOrmModule],

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
 import { ProductsService } from '../products/products.service';
 import { ProductStatus } from '../products/entities/product.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TransactionsService {
@@ -11,10 +12,15 @@ export class TransactionsService {
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
     private productsService: ProductsService,
+    private usersService: UsersService,
   ) {}
 
   async create(productId: string, buyerId: string): Promise<Transaction> {
+    await this.usersService.assertCluValid(buyerId);
+    
     const product = await this.productsService.findOne(productId);
+
+    await this.usersService.assertCluValid(product.sellerId);
 
     if (product.status !== ProductStatus.APPROVED) {
       throw new BadRequestException('El producto no está disponible para compra');
