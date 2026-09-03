@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserStatus } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -117,4 +117,33 @@ export class UsersService {
     }
     return user;
   }
+
+  async submitDocuments(
+    id: string,
+    data: {
+      dniFrontUrl?: string;
+      dniBackUrl?: string;
+      cluFrontUrl?: string;
+      cluBackUrl?: string;
+      cluExpirationDate?: string;
+    },
+    ): Promise<User> {
+    const user = await this.findOne(id);
+    const updates: Partial<User> = { status: UserStatus.IN_REVIEW };
+    
+    if (data.dniFrontUrl) updates.dniFrontUrl = data.dniFrontUrl;
+    if (data.dniBackUrl) updates.dniBackUrl = data.dniBackUrl;
+    if (data.cluFrontUrl) updates.cluFrontUrl = data.cluFrontUrl;
+    if (data.cluBackUrl) updates.cluBackUrl = data.cluBackUrl;
+    
+    if (data.cluExpirationDate) {
+      if (user.status === UserStatus.APPROVED) {
+        updates.pendingCluExpirationDate = new Date(data.cluExpirationDate);
+      } else {
+        updates.cluExpirationDate = new Date(data.cluExpirationDate);
+      }
+    }
+    await this.usersRepository.update(id, updates);
+    return this.findOne(id);
+}
 }

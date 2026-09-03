@@ -150,6 +150,16 @@ export default function AdminUsersPage() {
                           ))}
                         </div>
 
+                        {user.pendingCluExpirationDate && (
+                          <div className="border border-blue-900/40 bg-blue-950/10 p-3 mb-4">
+                            <p className="text-blue-300 font-rajdhani text-sm">
+                              <span className="text-blue-400 font-semibold">Renovación de CLU pendiente: </span>
+                              nueva fecha propuesta {new Date(user.pendingCluExpirationDate).toLocaleDateString('es-AR')}
+                              {user.cluExpirationDate && ` (actual: ${new Date(user.cluExpirationDate).toLocaleDateString('es-AR')})`}
+                            </p>
+                          </div>
+                        )}
+
                         {/* Documentos */}
                         {user.dniFrontUrl && (
                           <div className="flex flex-wrap gap-3 mb-4">
@@ -184,7 +194,7 @@ export default function AdminUsersPage() {
                       </div>
 
                       {/* Acciones */}
-                      {user.status === UserStatus.PENDING && (
+                      {user.status === UserStatus.PENDING || user.status === UserStatus.IN_REVIEW && (
                         <div className="flex flex-col gap-2 flex-shrink-0">
                           <button
                             onClick={() => handleApprove(user.id)}

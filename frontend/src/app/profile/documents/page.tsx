@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../../lib/auth';
 import ImageUpload from '../../../components/upload/ImageUpload';
-import { Upload, CheckCircle, Clock, XCircle, ArrowLeft, FileText } from 'lucide-react';
+import { Upload, CheckCircle, Clock, XCircle, FileText } from 'lucide-react';
 import api from '../../../lib/api';
 import { UserStatus } from '../../../types/user.types';
 import toast from 'react-hot-toast';
@@ -13,9 +13,12 @@ import AppNavbar from '../../../components/AppNavbar';
 export default function DocumentsUploadPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
+  const [currentUser] = useState(authService.getCurrentUser());
   const [dniImages, setDniImages] = useState<string[]>([]);
   const [cluImages, setCluImages] = useState<string[]>([]);
+  const [cluExpirationDate, setCluExpirationDate] = useState(
+  currentUser?.cluExpirationDate?.slice(0, 10) || ''
+  );
 
   useEffect(() => {
     if (!currentUser) { router.push('/login'); return; }
@@ -40,15 +43,20 @@ export default function DocumentsUploadPage() {
       setLoading(false);
       return;
     }
+    if (!cluExpirationDate) {
+      toast('Ingresá la fecha de vencimiento de tu CLU');
+      setLoading(false);
+      return;
+    }
     try {
-      await api.patch(`/users/${currentUser?.id}`, {
+      const response = await api.patch(`/users/${currentUser?.id}/documents`, {
         dniFrontUrl: dniImages[0],
         dniBackUrl: dniImages[1],
         cluFrontUrl: cluImages[0],
         cluBackUrl: cluImages[1],
+        cluExpirationDate,
       });
-      const updatedUser = { ...currentUser, dniFrontUrl: dniImages[0], dniBackUrl: dniImages[1], cluFrontUrl: cluImages[0], cluBackUrl: cluImages[1] };
-      if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(updatedUser));
+      if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(response.data));
       toast('Documentos enviados. Tu cuenta será revisada por un administrador.');
       router.push('/products');
     } catch (error: any) {
@@ -168,6 +176,18 @@ export default function DocumentsUploadPage() {
               currentImages={cluImages}
               folder="documents"
             />
+            <div className="mt-4">
+              <label className="block text-[#888888] text-xs tracking-[0.2em] uppercase font-rajdhani mb-2">
+                Fecha de vencimiento del CLU *
+              </label>
+              <input
+                type="date"
+                required
+                value={cluExpirationDate}
+                onChange={(e) => setCluExpirationDate(e.target.value)}
+                className="input-tactical"
+              />
+              </div>
             <p className="text-[#555555] font-rajdhani text-xs mt-3 tracking-wide">
               El CLU debe estar vigente. Subí frente y reverso
             </p>

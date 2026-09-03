@@ -41,6 +41,7 @@ export interface User {
   verifiedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  pendingCluExpirationDate?: string;
 }
 
 export interface AuthResponse {

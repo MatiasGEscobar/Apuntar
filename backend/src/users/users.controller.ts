@@ -47,19 +47,44 @@ export class UsersController {
     return this.usersService.update(id, updateData);
   }
 
+  @Patch(':id/documents')
+  async submitDocuments(
+    @Param('id') id: string,
+    @Body() body: {
+      dniFrontUrl?: string;
+      dniBackUrl?: string;
+      cluFrontUrl?: string;
+      cluBackUrl?: string;
+      cluExpirationDate?: string;
+    },
+    @Request() req,
+  ) {
+    if (req.user.id !== id) {
+      throw new ForbiddenException('No podés actualizar los documentos de otro usuario');
+    }
+    return this.usersService.submitDocuments(id, body);
+  }
+
   @Patch(':id/approve')
   @Roles(UserRole.ADMIN)
   async approve(@Param('id') id: string, @Request() req) {
-    const user = await this.usersService.update(id, { 
-      status: UserStatus.APPROVED,
-      verifiedAt: new Date(),
-      verifiedBy: req.user.id,
-    });
-  
-      // ← ENVIAR EMAIL
-    await this.notificationsService.sendUserApprovedEmail(user);
 
-    return user;
+      const existing = await this.usersService.findOne(id);
+
+      const updates: any = {
+        status: UserStatus.APPROVED,
+        verifiedAt: new Date(),
+        verifiedBy: req.user.id,
+      };
+    
+      if (existing.pendingCluExpirationDate) {
+        updates.cluExpirationDate = existing.pendingCluExpirationDate; // 👈 confirma la fecha propuesta
+        updates.pendingCluExpirationDate = null;
+      }
+
+      const user = await this.usersService.update(id, updates); 
+      await this.notificationsService.sendUserApprovedEmail(user);
+      return user;
   }
 
   @Patch(':id/reject')
@@ -68,10 +93,10 @@ export class UsersController {
     const user = await this.usersService.update(id, { 
       status: UserStatus.REJECTED,
       rejectionReason: reason,
+      pendingCluExpirationDate: null,
     });
      // ← ENVIAR EMAIL
     await this.notificationsService.sendUserRejectedEmail(user, reason);
-
     return user;
   }
 
