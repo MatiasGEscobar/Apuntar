@@ -49,3 +49,20 @@ Primera versión de desarrollo con la plataforma funcionalmente completa de punt
 - Panel de administración: vista de inscripciones por curso
 - Dashboard de ganancias y comisiones (incluyendo cursos)
 - Dashboard de movimientos y progreso general de usuarios/productos
+
+## [0.2.0] - 2026-09-08
+
+### Agregado
+
+**Vencimiento de CLU**
+- Bloqueo automático de compra y venta cuando el CLU de un usuario está vencido (tanto para el comprador como para el vendedor de un producto)
+- Suspensión automática de la cuenta al detectar vencimiento: vía cron diario y como respaldo, verificación en el momento en que el usuario intenta comprar o vender
+- Flujo de renovación: el usuario resube su CLU con fecha nueva desde `/profile/documents`, quedando en revisión hasta que un admin la confirme
+- Panel de admin: aviso distintivo para suspensiones automáticas por CLU vencido, con botones de aprobar/rechazar visibles solo una vez que el usuario envía la documentación renovada
+
+### Corregido
+- Navbar: agregado acceso directo a "Mis documentos" en el menú desplegable de usuario
+- Formulario de publicar producto: el campo de precio rechazaba valores no múltiplos de 1000 (ej. $8.500) por un `step` mal configurado
+- Formulario de publicar producto: los errores ahora se muestran como toast, consistente con el resto de la plataforma (antes quedaban arriba de la página, fuera de la vista si el usuario había scrolleado)
+- Panel de admin de cursos: el formulario de edición y el listado completo se mostraban superpuestos en pantalla al mismo tiempo
+- Términos y condiciones de cursos: separados en su propio modal con guardado independiente, en vez de vivir dentro del formulario general de edición del curso (donde no había confirmación clara de que se hubiera guardado)
