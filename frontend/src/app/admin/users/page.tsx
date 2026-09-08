@@ -184,9 +184,17 @@ export default function AdminUsersPage() {
 
                         {/* Motivo rechazo */}
                         {user.rejectionReason && (
-                          <div className="border border-red-900/40 bg-red-950/10 p-3">
-                            <p className="text-red-300 font-rajdhani text-sm">
-                              <span className="text-red-400 font-semibold">Motivo: </span>
+                          <div className={`border p-3 mb-4 ${
+                            user.rejectionReason.includes('CLU vencido')
+                              ? 'border-orange-900/40 bg-orange-950/10'
+                              : 'border-red-900/40 bg-red-950/10'
+                          }`}>
+                            <p className={`font-rajdhani text-sm ${
+                              user.rejectionReason.includes('CLU vencido') ? 'text-orange-300' : 'text-red-300'
+                            }`}>
+                              <span className="font-semibold">
+                                {user.rejectionReason.includes('CLU vencido') ? 'Suspendido automáticamente: ' : 'Motivo: '}
+                              </span>
                               {user.rejectionReason}
                             </p>
                           </div>
@@ -194,7 +202,7 @@ export default function AdminUsersPage() {
                       </div>
 
                       {/* Acciones */}
-                      {user.status === UserStatus.PENDING || user.status === UserStatus.IN_REVIEW && (
+                      {user.status === UserStatus.PENDING || user.status === UserStatus.IN_REVIEW|| user.status === UserStatus.SUSPENDED && (
                         <div className="flex flex-col gap-2 flex-shrink-0">
                           <button
                             onClick={() => handleApprove(user.id)}

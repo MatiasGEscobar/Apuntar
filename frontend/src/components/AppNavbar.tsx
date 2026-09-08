@@ -98,6 +98,10 @@ export default function AppNavbar({
                       Mis transacciones
                     </Link>
 
+                    <Link href="/profile/documents" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
+                      Mis documentos
+                    </Link>
+
                     {user.role === UserRole.SELLER && (
                       <Link href="/seller/products" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
                         Mis productos
