@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { User, UserStatus } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+
+const CLU_EXPIRED_REASON = 'CLU vencido. Actualizá tu CLU para reactivar tu cuenta.';
 
 @Injectable()
 export class UsersService {
@@ -110,12 +113,39 @@ export class UsersService {
 
   async assertCluValid(id: string): Promise<User> {
     const user = await this.findOne(id);
-    if (user.cluExpirationDate && new Date(user.cluExpirationDate) < new Date()) {
+    const isExpired = user.cluExpirationDate && new Date(user.cluExpirationDate) < new Date();
+
+    if (isExpired) {
+    if (user.status === UserStatus.APPROVED) {
+        // 👇 chequeo perezoso: corrige el status ahí mismo, no espera al cron
+        await this.usersRepository.update(id, {
+          status: UserStatus.SUSPENDED,
+          rejectionReason: CLU_EXPIRED_REASON,
+        });
+      }
       throw new ForbiddenException(
         'Tu CLU está vencida. Actualizá tu CLU vigente para poder comprar o vender en la plataforma.',
       );
     }
     return user;
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async checkExpiredClus(): Promise<void> {
+    const now = new Date();
+    const expiredUsers = await this.usersRepository.find({
+      where: {
+        status: UserStatus.APPROVED,
+        cluExpirationDate: LessThan(now),
+      },
+    });
+
+    for (const user of expiredUsers) {
+      await this.usersRepository.update(user.id, {
+        status: UserStatus.SUSPENDED,
+        rejectionReason: CLU_EXPIRED_REASON,
+      });
+    }
   }
 
   async submitDocuments(
