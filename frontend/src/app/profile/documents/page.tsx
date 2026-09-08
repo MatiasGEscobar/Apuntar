@@ -102,7 +102,7 @@ export default function DocumentsUploadPage() {
       [UserStatus.SUSPENDED]: {
         icon: <XCircle className="w-5 h-5 text-[#888888]" />,
         title: 'CUENTA SUSPENDIDA',
-        msg: 'Tu cuenta fue suspendida. Contactá al administrador.',
+        msg: 'Tu cuenta fue suspendida. Por favor renueva tu CLU .',
         color: 'text-[#888888]',
         bg: 'border-[#333333] bg-[#1a1a1a]',
       },

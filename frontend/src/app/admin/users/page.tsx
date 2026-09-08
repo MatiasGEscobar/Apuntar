@@ -6,7 +6,6 @@ import { usersService } from '../../../lib/users';
 import { authService } from '../../../lib/auth';
 import { User, UserStatus, UserRole } from '../../../types/user.types';
 import { Check, X, Plus, LogOut, Users, Package } from 'lucide-react';
-import Logo from '../../../components/logo';
 import toast from 'react-hot-toast';
 import AdminNavbar from '../../../components/AdminNavbar';
 
