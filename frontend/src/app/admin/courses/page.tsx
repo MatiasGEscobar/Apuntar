@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { coursesService, Course } from '../../../lib/courses';
+import { coursesService, Course, CourseEnrollment } from '../../../lib/courses';
 import { authService } from '../../../lib/auth';
 import { UserRole } from '../../../types/user.types';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
@@ -37,6 +37,9 @@ export default function AdminCoursesPage() {
   const [termsModalCourse, setTermsModalCourse] = useState<Course | null>(null);
   const [termsDraft, setTermsDraft] = useState('');
   const [savingTerms, setSavingTerms] = useState(false);
+  const [enrollmentsModalCourse, setEnrollmentsModalCourse] = useState<Course | null>(null);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
   useEffect(() => {
     const user = authService.getCurrentUser();
@@ -48,6 +51,19 @@ export default function AdminCoursesPage() {
     setTermsModalCourse(course);
     setTermsDraft(course.termsAndConditions || '');
   };
+
+  const openEnrollmentsModal = async (course: Course) => {
+  setEnrollmentsModalCourse(course);
+  setLoadingEnrollments(true);
+  try {
+    const data = await coursesService.getEnrollments(course.id);
+    setEnrollments(data);
+  } catch {
+    toast.error('Error al cargar inscriptos');
+  } finally {
+    setLoadingEnrollments(false);
+  }
+};
 
   const loadCourses = async () => {
     try {
@@ -359,6 +375,9 @@ export default function AdminCoursesPage() {
                       <button onClick={() => openTermsModal(course)} className="btn-tactical-outline text-xs py-2 px-4 flex items-center gap-2">
                        📄 TÉRMINOS
                       </button>
+                      <button onClick={() => openEnrollmentsModal(course)} className="btn-tactical-outline text-xs py-2 px-4 flex items-center gap-2">
+                        👥 INSCRIPTOS ({course.totalSpots - course.availableSpots})
+                      </button>
                       <button onClick={() => handleDelete(course.id)} className="flex items-center gap-2 border border-red-900 bg-red-950/20 text-red-400 font-tactical text-xs tracking-wider px-4 py-2 hover:bg-red-950/40 transition-colors">
                         <Trash2 className="w-3 h-3" /> ELIMINAR
                       </button>
@@ -437,6 +456,77 @@ export default function AdminCoursesPage() {
             </div>
           </div>
         </div>
+)}
+{/* Modal de inscriptos */}
+{enrollmentsModalCourse && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div className="bg-[#111111] border border-[#333333] w-full max-w-4xl max-h-[85vh] flex flex-col">
+      <div className="px-6 py-4 border-b border-[#333333] flex items-center justify-between">
+        <h2 className="font-tactical text-xl text-[#e8e8e8] tracking-wide">
+          INSCRIPTOS — {enrollmentsModalCourse.title}
+        </h2>
+        <button onClick={() => setEnrollmentsModalCourse(null)} className="text-[#888888] hover:text-[#e8e8e8]">✕</button>
+      </div>
+
+      <div className="p-6 overflow-y-auto">
+        {loadingEnrollments ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-6 h-6 border-2 border-[#333333] border-t-[#c9a227] rounded-full animate-spin" />
+          </div>
+        ) : enrollments.length === 0 ? (
+          <p className="text-[#888888] font-rajdhani text-sm text-center py-12">
+            Todavía no hay inscriptos en este curso.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {enrollments.map((e) => {
+              const statusConfig = {
+                paid: { label: 'PAGADO', color: 'text-green-400', bg: 'border-green-900/40 bg-green-950/10' },
+                pending: { label: 'PENDIENTE', color: 'text-yellow-400', bg: 'border-yellow-900/40 bg-yellow-950/10' },
+                cancelled: { label: 'CANCELADO', color: 'text-red-400', bg: 'border-red-900/40 bg-red-950/10' },
+              }[e.status];
+
+              return (
+                <div key={e.id} className="border border-[#333333] bg-[#1a1a1a] p-4">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div>
+                      <p className="font-rajdhani font-semibold text-[#e8e8e8]">{e.participantName}</p>
+                      <p className="text-[#888888] font-rajdhani text-xs">DNI: {e.participantDni}</p>
+                    </div>
+                    <span className={`font-tactical text-xs px-3 py-1 border ${statusConfig.color} ${statusConfig.bg}`}>
+                      {statusConfig.label}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <p className="text-[#555555] uppercase tracking-wider mb-1">Pagó</p>
+                      <p className="text-[#e8e8e8] font-rajdhani">{e.buyerName || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#555555] uppercase tracking-wider mb-1">Email</p>
+                      <p className="text-[#e8e8e8] font-rajdhani">{e.buyerEmail || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#555555] uppercase tracking-wider mb-1">Monto</p>
+                      <p className="text-[#c9a227] font-rajdhani font-semibold">
+                        ${Number(e.amount).toLocaleString('es-AR')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#555555] uppercase tracking-wider mb-1">Fecha</p>
+                      <p className="text-[#e8e8e8] font-rajdhani">
+                        {new Date(e.createdAt).toLocaleDateString('es-AR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
 )}
     </div>
   );

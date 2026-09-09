@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, In } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { User, UserStatus } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -71,17 +71,19 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
-
     return user;
+  }
+
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+    return this.usersRepository.find({ where: { id: In(ids) } });
   }
 
   async findByEmail(email: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { email } });
-    
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
-
     return user;
   }
 
@@ -98,14 +100,12 @@ export class UsersService {
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
-
     await this.usersRepository.update(id, updateData);
     return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
     const result = await this.usersRepository.delete(id);
-    
     if (result.affected === 0) {
       throw new NotFoundException('Usuario no encontrado');
     }

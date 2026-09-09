@@ -1,5 +1,19 @@
 import api from './api';
 
+export interface CourseEnrollment {
+  id: string;
+  courseId: string;
+  userId: string;
+  participantName: string;
+  participantDni: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'cancelled';
+  paymentId?: string;
+  createdAt: string;
+  buyerName: string | null;
+  buyerEmail: string | null;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -46,5 +60,10 @@ export const coursesService = {
 
   async remove(id: string): Promise<void> {
     await api.delete(`/courses/${id}`);
+  },
+
+  async getEnrollments(courseId: string): Promise<CourseEnrollment[]> {
+    const response = await api.get<CourseEnrollment[]>(`/courses/${courseId}/enrollments`);
+    return response.data;
   },
 };

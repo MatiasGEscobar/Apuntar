@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CourseEnrollment, EnrollmentStatus } from './entities/course-enrollment.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class CoursesService {
@@ -11,6 +12,7 @@ export class CoursesService {
     private coursesRepository: Repository<Course>,
     @InjectRepository(CourseEnrollment) 
     private enrollmentsRepository: Repository<CourseEnrollment>,
+    private usersService: UsersService,
   ) {}
 
   async create(data: Partial<Course>): Promise<Course> {
@@ -111,5 +113,27 @@ export class CoursesService {
     await this.enrollmentsRepository.update(id, { status: EnrollmentStatus.PAID, paymentId });
     await this.decrementSpot(enrollment.courseId);
     return this.findEnrollment(id);
+  }
+
+  async findEnrollmentsByCourse(courseId: string) {
+    await this.findOne(courseId); // valida que el curso exista
+
+    const enrollments = await this.enrollmentsRepository.find({
+      where: { courseId },
+      order: { createdAt: 'DESC' },
+    });
+
+    const userIds = [...new Set(enrollments.map((e) => e.userId))];
+    const buyers = await this.usersService.findByIds(userIds);
+    const buyerMap = new Map(buyers.map((u) => [u.id, u]));
+
+    return enrollments.map((e) => {
+      const buyer = buyerMap.get(e.userId);
+      return {
+        ...e,
+        buyerName: buyer ? `${buyer.firstName} ${buyer.lastName}` : null,
+        buyerEmail: buyer?.email || null,
+      };
+    });
   }
 }

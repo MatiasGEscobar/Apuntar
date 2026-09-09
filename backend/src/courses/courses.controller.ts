@@ -16,6 +16,13 @@ export class CoursesController {
     return this.coursesService.findAll(all !== 'true');
   }
 
+  @Get(':id/enrollments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  findEnrollments(@Param('id') id: string) {
+    return this.coursesService.findEnrollmentsByCourse(id);
+  } 
+
   // Público — ver un curso
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -45,4 +52,5 @@ export class CoursesController {
   remove(@Param('id') id: string) {
     return this.coursesService.remove(id);
   }
+
 }
