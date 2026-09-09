@@ -499,7 +499,7 @@ export default function AdminCoursesPage() {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <p className="text-[#555555] uppercase tracking-wider mb-1">Pagó</p>
+                      <p className="text-[#555555] uppercase tracking-wider mb-1">Inscribió</p>
                       <p className="text-[#e8e8e8] font-rajdhani">{e.buyerName || '—'}</p>
                     </div>
                     <div>

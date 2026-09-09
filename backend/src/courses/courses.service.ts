@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CourseEnrollment, EnrollmentStatus } from './entities/course-enrollment.entity';
 import { UsersService } from '../users/users.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class CoursesService {
@@ -14,6 +15,17 @@ export class CoursesService {
     private enrollmentsRepository: Repository<CourseEnrollment>,
     private usersService: UsersService,
   ) {}
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async cleanupStalePendingEnrollments(): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const stale = await this.enrollmentsRepository.find({
+      where: { status: EnrollmentStatus.PENDING, createdAt: LessThan(oneHourAgo) },
+    });
+    for (const enrollment of stale) {
+      await this.enrollmentsRepository.update(enrollment.id, { status: EnrollmentStatus.CANCELLED });
+    }
+  }
 
   async create(data: Partial<Course>): Promise<Course> {
     const course = this.coursesRepository.create(data);

@@ -75,8 +75,9 @@ export class PaymentsController {
       body.acceptedTerms,
     );
 
+  try {
     const result = await this.paymentsService.processPayment({
-      externalReference: `course_${enrollment.id}`, // 👈 prefijo para distinguir en el webhook
+      externalReference: `course_${enrollment.id}`, 
       description: `Inscripción curso ${courseId} - ${body.participantName}`,
       amount: Number(enrollment.amount),
       token: body.token,
@@ -94,7 +95,11 @@ export class PaymentsController {
     }
 
     return { ...result, enrollmentId: enrollment.id };
+  } catch (error) {
+    await this.coursesService.cancelEnrollment(enrollment.id); // 👈 nuevo: limpia si el pago tira excepción
+    throw error;
   }
+};
 
   @Post('webhook')
   @HttpCode(200)
