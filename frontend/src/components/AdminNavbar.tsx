@@ -6,11 +6,11 @@ import { authService } from '../lib/auth';
 import { usersService } from '../lib/users';
 import { productsService } from '../lib/products';
 import { coursesService } from '../lib/courses';
-import { Users, Package, BookOpen, LogOut, TrendingUp } from 'lucide-react';
+import { Users, Package, BookOpen, LogOut, TrendingUp, Trophy } from 'lucide-react';
 import Logo from './logo';
 
 interface AdminNavbarProps {
-  active: 'users' | 'products' | 'courses'| 'revenue';
+  active: 'users' | 'products' | 'courses'| 'revenue'| 'rankings';
 }
 
 export default function AdminNavbar({ active }: AdminNavbarProps) {
@@ -63,6 +63,13 @@ export default function AdminNavbar({ active }: AdminNavbarProps) {
       icon: TrendingUp,
       count: 0, // sin badge numérico, no aplica acá
       path: '/admin/revenue',
+    },
+    {
+      key: 'rankings',
+      label: 'RANKINGS',
+      icon: Trophy,
+      count: 0,
+      path: '/admin/rankings',
     },
   ];
 

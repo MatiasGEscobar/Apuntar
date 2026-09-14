@@ -113,4 +113,12 @@ export class ProductsService {
 
     return this.findOne(id);
   }
+
+  async getMostViewed(limit = 10): Promise<Product[]> {
+  return this.productsRepository.find({
+    relations: ['seller'],
+    order: { views: 'DESC' },
+    take: limit,
+  });
+}
 }

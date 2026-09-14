@@ -15,4 +15,9 @@ export class ReportsController {
   getRevenue() {
     return this.reportsService.getRevenueOverview();
   }
+
+  @Get('rankings')
+  getRankings() {
+    return this.reportsService.getRankings();
+  }
 }

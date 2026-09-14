@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, In } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CourseEnrollment, EnrollmentStatus } from './entities/course-enrollment.entity';
 import { UsersService } from '../users/users.service';
@@ -162,5 +162,29 @@ export class CoursesService {
     academiaNet: totalRevenue - platformCommission,
     enrollmentCount: paid.length,
   };
+}
+
+async getTopCourses(limit = 10) {
+  const raw = await this.enrollmentsRepository
+    .createQueryBuilder('e')
+    .select('e.courseId', 'courseId')
+    .addSelect('COUNT(*)', 'enrollmentCount')
+    .addSelect('SUM(e.amount)', 'totalRevenue')
+    .where('e.status = :status', { status: EnrollmentStatus.PAID })
+    .groupBy('e.courseId')
+    .orderBy('"enrollmentCount"', 'DESC')
+    .limit(limit)
+    .getRawMany();
+
+  const courseIds = raw.map((r) => r.courseId);
+  const courses = await this.coursesRepository.find({ where: { id: In(courseIds) } });
+  const courseMap = new Map(courses.map((c) => [c.id, c]));
+
+  return raw.map((r) => ({
+    courseId: r.courseId,
+    courseTitle: courseMap.get(r.courseId)?.title || 'Desconocido',
+    enrollmentCount: Number(r.enrollmentCount),
+    totalRevenue: Number(r.totalRevenue),
+  }));
 }
 }

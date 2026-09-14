@@ -197,4 +197,31 @@ async getRevenueSummary() {
       transactionCount: realized.length,
     };
   }
+
+  async getTopSellers(limit = 10) {
+  const raw = await this.transactionsRepository
+    .createQueryBuilder('t')
+    .select('t.sellerId', 'sellerId')
+    .addSelect('COUNT(*)', 'salesCount')
+    .addSelect('SUM(t.amount)', 'totalRevenue')
+    .where('t.status IN (:...statuses)', { statuses: [TransactionStatus.ESCROW, TransactionStatus.COMPLETED] })
+    .groupBy('t.sellerId')
+    .orderBy('"totalRevenue"', 'DESC')
+    .limit(limit)
+    .getRawMany();
+
+  const sellerIds = raw.map((r) => r.sellerId);
+  const sellers = await this.usersService.findByIds(sellerIds);
+  const sellerMap = new Map(sellers.map((u) => [u.id, u]));
+
+  return raw.map((r) => {
+    const seller = sellerMap.get(r.sellerId);
+    return {
+      sellerId: r.sellerId,
+      sellerName: seller ? `${seller.firstName} ${seller.lastName}` : 'Desconocido',
+      salesCount: Number(r.salesCount),
+      totalRevenue: Number(r.totalRevenue),
+    };
+  });
+}
 }
