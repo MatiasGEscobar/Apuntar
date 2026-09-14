@@ -119,6 +119,12 @@ export default function AppNavbar({
                         <Link href="/admin/courses" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
                           Cursos
                         </Link>
+                        <Link href="/admin/revenue" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
+                          Ingresos
+                        </Link>
+                        <Link href="/admin/rankings" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
+                          Rankings
+                        </Link>
                       </>
                     )}
 
