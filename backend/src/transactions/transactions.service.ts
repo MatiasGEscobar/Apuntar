@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
 import { ProductsService } from '../products/products.service';
 import { ProductStatus } from '../products/entities/product.entity';
@@ -184,4 +184,17 @@ async updateStatusBySystem(
   await this.transactionsRepository.update(id, updateData);
   return this.findOne(id);
 }
+
+async getRevenueSummary() {
+    const realized = await this.transactionsRepository.find({
+      where: { status: In([TransactionStatus.ESCROW, TransactionStatus.COMPLETED]) },
+    });
+    const totalSales = realized.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalCommission = realized.reduce((sum, t) => sum + Number(t.totalCommission), 0);
+    return {
+      totalSales,
+      totalCommission,
+      transactionCount: realized.length,
+    };
+  }
 }

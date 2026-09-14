@@ -148,4 +148,19 @@ export class CoursesService {
       };
     });
   }
+
+  async getRevenueSummary() {
+  const paid = await this.enrollmentsRepository.find({ where: { status: EnrollmentStatus.PAID } });
+  const COURSE_COMMISSION_RATE = 0.03; // mismo 3% total que productos
+
+  const totalRevenue = paid.reduce((sum, e) => sum + Number(e.amount), 0);
+  const platformCommission = totalRevenue * COURSE_COMMISSION_RATE;
+
+  return {
+    totalRevenue,
+    platformCommission,
+    academiaNet: totalRevenue - platformCommission,
+    enrollmentCount: paid.length,
+  };
+}
 }

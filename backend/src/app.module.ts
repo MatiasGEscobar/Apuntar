@@ -11,6 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RenarModule } from './renar/renar.module';
 import { CoursesModule } from './courses/courses.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     NotificationsModule,
     RenarModule,
     CoursesModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

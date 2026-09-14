@@ -6,11 +6,11 @@ import { authService } from '../lib/auth';
 import { usersService } from '../lib/users';
 import { productsService } from '../lib/products';
 import { coursesService } from '../lib/courses';
-import { Users, Package, BookOpen, LogOut } from 'lucide-react';
+import { Users, Package, BookOpen, LogOut, TrendingUp } from 'lucide-react';
 import Logo from './logo';
 
 interface AdminNavbarProps {
-  active: 'users' | 'products' | 'courses';
+  active: 'users' | 'products' | 'courses'| 'revenue';
 }
 
 export default function AdminNavbar({ active }: AdminNavbarProps) {
@@ -56,6 +56,13 @@ export default function AdminNavbar({ active }: AdminNavbarProps) {
       icon: BookOpen,
       count: totalCourses,
       path: '/admin/courses',
+    },
+    {
+      key: 'revenue',
+      label: 'INGRESOS',
+      icon: TrendingUp,
+      count: 0, // sin badge numérico, no aplica acá
+      path: '/admin/revenue',
     },
   ];
 
