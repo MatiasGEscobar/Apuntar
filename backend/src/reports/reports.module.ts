@@ -3,10 +3,10 @@ import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { CoursesModule } from '../courses/courses.module';
-import { ProductsService } from '../products/products.service';
+import { ProductsModule } from '../products/products.module';
 
 @Module({
-  imports: [TransactionsModule, CoursesModule, ProductsService],
+  imports: [TransactionsModule, CoursesModule, ProductsModule],
   controllers: [ReportsController],
   providers: [ReportsService],
 })
