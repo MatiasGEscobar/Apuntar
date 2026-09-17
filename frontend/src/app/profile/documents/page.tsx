@@ -13,22 +13,34 @@ import AppNavbar from '../../../components/AppNavbar';
 export default function DocumentsUploadPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [currentUser] = useState(authService.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
   const [dniImages, setDniImages] = useState<string[]>([]);
   const [cluImages, setCluImages] = useState<string[]>([]);
   const [cluExpirationDate, setCluExpirationDate] = useState(
   currentUser?.cluExpirationDate?.slice(0, 10) || ''
   );
 
-  useEffect(() => {
-    if (!currentUser) { router.push('/login'); return; }
-    if (currentUser.dniFrontUrl && currentUser.dniBackUrl) {
-      setDniImages([currentUser.dniFrontUrl, currentUser.dniBackUrl]);
+useEffect(() => {
+  const load = async () => {
+    if (!authService.isAuthenticated()) { router.push('/login'); return; }
+    try {
+      const fresh = await authService.getProfile();
+      setCurrentUser(fresh);
+      if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(fresh));
+
+      if (fresh.dniFrontUrl && fresh.dniBackUrl) {
+        setDniImages([fresh.dniFrontUrl, fresh.dniBackUrl]);
+      }
+      if (fresh.cluFrontUrl && fresh.cluBackUrl) {
+        setCluImages([fresh.cluFrontUrl, fresh.cluBackUrl]);
+      }
+      setCluExpirationDate(fresh.cluExpirationDate?.slice(0, 10) || '');
+    } catch {
+      router.push('/login');
     }
-    if (currentUser.cluFrontUrl && currentUser.cluBackUrl) {
-      setCluImages([currentUser.cluFrontUrl, currentUser.cluBackUrl]);
-    }
-  }, []);
+  };
+  load();
+}, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
