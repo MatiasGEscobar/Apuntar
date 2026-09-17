@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import MercadoPagoConfig, { Payment } from 'mercadopago';
+import MercadoPagoConfig, { Payment, PaymentRefund } from 'mercadopago';
 
 @Injectable()
 export class PaymentsService {
@@ -83,5 +83,17 @@ export class PaymentsService {
       };
     }
     return { received: true };
+  }
+
+  async refundPayment(paymentId: string) {
+    try {
+      const refund = new PaymentRefund(this.client);
+      return await refund.create({ payment_id: paymentId });
+    } catch (error) {
+      console.log('ERROR MP REFUND:', JSON.stringify(error, null, 2));
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Error al procesar el reembolso'
+      );
+    }
   }
 }

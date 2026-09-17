@@ -13,6 +13,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApprovedUserGuard } from '../auth/guards/approved-user.guard'; // ← AGREGAR
 import { TransactionStatus } from './entities/transaction.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
@@ -94,5 +97,21 @@ export class TransactionsController {
     @Request() req,
   ) {
     return this.transactionsService.addRating(id, req.user.id, rating, review);
+  }
+
+  @Patch(':id/dispute')
+  raiseDispute(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req,
+  ) {
+    return this.transactionsService.raiseDispute(id, req.user.id, reason);
+  }
+  
+  @Get('admin/disputes')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  findDisputes() {
+    return this.transactionsService.findByStatus(TransactionStatus.DISPUTED);
   }
 }

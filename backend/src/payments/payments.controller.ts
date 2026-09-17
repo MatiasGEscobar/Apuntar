@@ -1,8 +1,12 @@
-import { Controller, Post, Body, Param, HttpCode } from '@nestjs/common';
+import { UseGuards, Request, Controller, Post, Body, Param, HttpCode, Patch } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionStatus } from '../transactions/entities/transaction.entity';
 import { CoursesService } from '../courses/courses.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
 import { EnrollmentStatus } from '../courses/entities/course-enrollment.entity';
 
 @Controller('payments')
@@ -118,5 +122,22 @@ export class PaymentsController {
     }
   }
     return { received: true };
+  }
+
+  @Patch('disputes/:transactionId/resolve')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async resolveDispute(
+    @Param('transactionId') transactionId: string,
+    @Body() body: { resolution: 'buyer' | 'seller'; notes: string },
+    @Request() req,
+  ) {
+    const transaction = await this.transactionsService.findOne(transactionId);
+
+    if (body.resolution === 'buyer' && transaction.mercadoPagoPaymentId) {
+      await this.paymentsService.refundPayment(transaction.mercadoPagoPaymentId);
+    }
+
+    return this.transactionsService.resolveDispute(transactionId, req.user.id, body.resolution, body.notes);
   }
 }

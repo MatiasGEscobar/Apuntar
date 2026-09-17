@@ -224,4 +224,57 @@ async getRevenueSummary() {
     };
   });
 }
+async raiseDispute(id: string, userId: string, reason: string): Promise<Transaction> {
+  const transaction = await this.findOne(id);
+
+  if (transaction.buyerId !== userId && transaction.sellerId !== userId) {
+    throw new ForbiddenException('No tenés permiso sobre esta transacción');
+  }
+  if (transaction.status !== TransactionStatus.ESCROW) {
+    throw new BadRequestException('Solo se puede reportar un problema en transacciones con pago retenido en escrow');
+  }
+
+  await this.transactionsRepository.update(id, {
+    status: TransactionStatus.DISPUTED,
+    disputeReason: reason,
+    disputeRaisedBy: userId,
+  });
+  return this.findOne(id);
+}
+
+async findByStatus(status: TransactionStatus): Promise<Transaction[]> {
+  return this.transactionsRepository.find({ where: { status }, order: { createdAt: 'DESC' } });
+}
+
+async resolveDispute(
+  id: string,
+  adminId: string,
+  resolution: 'buyer' | 'seller',
+  notes: string,
+): Promise<Transaction> {
+  const transaction = await this.findOne(id);
+  if (transaction.status !== TransactionStatus.DISPUTED) {
+    throw new BadRequestException('Esta transacción no tiene una disputa activa');
+  }
+
+  const updateData: any = {
+    disputeResolution: notes,
+    resolvedBy: adminId,
+    resolvedAt: new Date(),
+  };
+
+  if (resolution === 'buyer') {
+    updateData.status = TransactionStatus.CANCELLED;
+    updateData.cancelledAt = new Date();
+    updateData.cancellationReason = `Disputa resuelta a favor del comprador: ${notes}`;
+    await this.productsService.update(transaction.productId, { status: ProductStatus.APPROVED }, transaction.sellerId);
+  } else {
+    updateData.status = TransactionStatus.COMPLETED;
+    updateData.completedAt = new Date();
+    await this.productsService.update(transaction.productId, { status: ProductStatus.SOLD }, transaction.sellerId);
+  }
+
+  await this.transactionsRepository.update(id, updateData);
+  return this.findOne(id);
+}
 }

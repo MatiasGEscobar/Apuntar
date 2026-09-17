@@ -105,4 +105,20 @@ export class Transaction {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Disputas
+  @Column({ type: 'text', nullable: true })
+  disputeReason: string;
+
+  @Column({ nullable: true })
+  disputeRaisedBy: string;
+
+  @Column({ type: 'text', nullable: true })
+  disputeResolution: string;
+
+  @Column({ nullable: true })
+  resolvedBy: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resolvedAt: Date;
 }

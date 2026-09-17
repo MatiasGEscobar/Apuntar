@@ -47,4 +47,19 @@ export const transactionsService = {
     });
     return response.data;
   },
+
+  async raiseDispute(id: string, reason: string) {
+    const response = await api.patch(`/transactions/${id}/dispute`, { reason });
+    return response.data;
+  },
+  
+  async getDisputes() {
+    const response = await api.get('/transactions/admin/disputes');
+    return response.data;
+  },
+  
+  async resolveDispute(id: string, resolution: 'buyer' | 'seller', notes: string) {
+    const response = await api.patch(`/payments/disputes/${id}/resolve`, { resolution, notes });
+    return response.data;
+  },
 };

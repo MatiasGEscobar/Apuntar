@@ -36,6 +36,7 @@ export interface Transaction {
   cancellationReason?: string;
   createdAt: string;
   updatedAt: string;
+  disputeReason: string;
 }
 
 export interface Message {

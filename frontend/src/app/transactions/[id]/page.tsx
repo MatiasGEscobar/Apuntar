@@ -108,10 +108,25 @@ const handleCancelTransaction = async () => {
     [TransactionStatus.ESCROW]:    { label: 'EN ESCROW · COORDINAR', color: 'text-blue-400',   icon: Shield },
     [TransactionStatus.COMPLETED]: { label: 'COMPLETADA',            color: 'text-green-400',  icon: CheckCircle },
     [TransactionStatus.CANCELLED]: { label: 'CANCELADA',             color: 'text-red-400',    icon: AlertTriangle },
+    [TransactionStatus.DISPUTED]: { label: 'EN DISPUTA',             color: 'text-orange-400', icon: AlertTriangle },
   };
 
   const status = statusConfig[transaction.status] || { label: transaction.status, color: 'text-[#888888]', icon: Package };
   const StatusIcon = status.icon;
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
+
+  const handleRaiseDispute = async () => {
+    if (!transaction || !disputeReason.trim()) return;
+    try {
+      await transactionsService.raiseDispute(transaction.id, disputeReason.trim());
+      toast.success('Disputa reportada. Un admin va a revisar el caso.');
+      setShowDisputeModal(false);
+      await loadTransaction(transaction.id);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Error al reportar el problema');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -183,6 +198,24 @@ const handleCancelTransaction = async () => {
               <CheckCircle className="w-4 h-4" />
               CONFIRMAR ENTREGA
             </button>
+          )}
+
+          {transaction.status === TransactionStatus.ESCROW && (
+            <button
+              onClick={() => setShowDisputeModal(true)}
+              className="w-full border border-orange-900 bg-orange-950/20 text-orange-400 font-tactical text-sm tracking-wider py-3 hover:bg-orange-950/40 transition-colors"
+            >
+              REPORTAR UN PROBLEMA
+            </button>
+          )}
+          
+          {transaction.status === TransactionStatus.DISPUTED && (
+            <div className="border border-orange-900/40 bg-orange-950/10 p-4">
+              <p className="text-orange-300 font-rajdhani text-sm">
+                <span className="font-semibold">Disputa en revisión: </span>
+                {transaction.disputeReason}
+              </p>
+            </div>
           )}
 
           {/* Acciones para pago pendiente */}
@@ -322,6 +355,31 @@ const handleCancelTransaction = async () => {
                   ))}
                 </div>
               </div>
+
+              {showDisputeModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                  <div className="bg-[#111111] border border-[#333333] w-full max-w-md">
+                    <div className="px-6 py-4 border-b border-[#333333]">
+                      <h2 className="font-tactical text-2xl text-[#e8e8e8] tracking-wide">REPORTAR UN PROBLEMA</h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <textarea
+                        rows={4}
+                        value={disputeReason}
+                        onChange={(e) => setDisputeReason(e.target.value)}
+                        className="input-tactical resize-none"
+                        placeholder="Contanos qué pasó..."
+                      />
+                      <div className="flex gap-3">
+                        <button onClick={() => setShowDisputeModal(false)} className="btn-tactical-outline flex-1 py-3">CANCELAR</button>
+                        <button onClick={handleRaiseDispute} disabled={!disputeReason.trim()} className="btn-tactical flex-1 py-3 disabled:opacity-50">
+                          ENVIAR
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-2">
