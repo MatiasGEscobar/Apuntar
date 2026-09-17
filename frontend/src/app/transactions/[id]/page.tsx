@@ -21,6 +21,8 @@ export default function TransactionDetailPage() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
 
 
   const { messages, sendMessage, isConnected, otherUserOnline } = useChat(
@@ -113,8 +115,7 @@ const handleCancelTransaction = async () => {
 
   const status = statusConfig[transaction.status] || { label: transaction.status, color: 'text-[#888888]', icon: Package };
   const StatusIcon = status.icon;
-  const [showDisputeModal, setShowDisputeModal] = useState(false);
-  const [disputeReason, setDisputeReason] = useState('');
+
 
   const handleRaiseDispute = async () => {
     if (!transaction || !disputeReason.trim()) return;
@@ -356,31 +357,6 @@ const handleCancelTransaction = async () => {
                 </div>
               </div>
 
-              {showDisputeModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                  <div className="bg-[#111111] border border-[#333333] w-full max-w-md">
-                    <div className="px-6 py-4 border-b border-[#333333]">
-                      <h2 className="font-tactical text-2xl text-[#e8e8e8] tracking-wide">REPORTAR UN PROBLEMA</h2>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <textarea
-                        rows={4}
-                        value={disputeReason}
-                        onChange={(e) => setDisputeReason(e.target.value)}
-                        className="input-tactical resize-none"
-                        placeholder="Contanos qué pasó..."
-                      />
-                      <div className="flex gap-3">
-                        <button onClick={() => setShowDisputeModal(false)} className="btn-tactical-outline flex-1 py-3">CANCELAR</button>
-                        <button onClick={handleRaiseDispute} disabled={!disputeReason.trim()} className="btn-tactical flex-1 py-3 disabled:opacity-50">
-                          ENVIAR
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div>
                 <label className="block text-[#555555] font-rajdhani text-xs tracking-[0.2em] uppercase mb-2">
                   Comentario (opcional)
@@ -413,6 +389,31 @@ const handleCancelTransaction = async () => {
           </div>
         </div>
       )}
+
+                    {showDisputeModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                  <div className="bg-[#111111] border border-[#333333] w-full max-w-md">
+                    <div className="px-6 py-4 border-b border-[#333333]">
+                      <h2 className="font-tactical text-2xl text-[#e8e8e8] tracking-wide">REPORTAR UN PROBLEMA</h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <textarea
+                        rows={4}
+                        value={disputeReason}
+                        onChange={(e) => setDisputeReason(e.target.value)}
+                        className="input-tactical resize-none"
+                        placeholder="Contanos qué pasó..."
+                      />
+                      <div className="flex gap-3">
+                        <button onClick={() => setShowDisputeModal(false)} className="btn-tactical-outline flex-1 py-3">CANCELAR</button>
+                        <button onClick={handleRaiseDispute} disabled={!disputeReason.trim()} className="btn-tactical flex-1 py-3 disabled:opacity-50">
+                          ENVIAR
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
     </div>
   );
 }
