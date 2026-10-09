@@ -5,6 +5,21 @@ Todas las versiones notables de Apuntar Academia se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.4.0] - 2026-09-17
+
+### Agregado
+
+**Rankings**
+- Panel de admin (`/admin/rankings`): top vendedores por ingresos, productos más vistos, cursos con más inscriptos pagados
+
+**Resolución de disputas**
+- Comprador o vendedor pueden reportar un problema en una transacción con pago en escrow
+- La transacción queda congelada (sin confirmar entrega ni cancelar) hasta que un admin resuelve
+- Panel de admin (`/admin/disputes`) para revisar y resolver, con reembolso automático vía Mercado Pago cuando se falla a favor del comprador
+
+### Corregido
+- `/profile/documents` mostraba el estado de cuenta desactualizado (leía de `localStorage` en vez de pedir el perfil actual al backend) — un usuario aprobado por un admin seguía viendo "en revisión" hasta cerrar sesión y volver a entrar
+
 ## [0.3.0] - 2026-09-13
 
 ### Agregado

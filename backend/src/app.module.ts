@@ -12,6 +12,7 @@ import { RenarModule } from './renar/renar.module';
 import { CoursesModule } from './courses/courses.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReportsModule } from './reports/reports.module';
+import { AccessoriesModule } from './accessories/accessories.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ReportsModule } from './reports/reports.module';
     RenarModule,
     CoursesModule,
     ReportsModule,
+    AccessoriesModule,
   ],
 })
 export class AppModule {}
