@@ -63,6 +63,11 @@ export default function AppNavbar({
         {backHref && backLabel && <Logo size="sm" />}
 
         <div className="flex items-center gap-4">
+          <Link
+            href="/accessories"
+            className="hidden md:block text-[#888888] hover:text-[#c9a227] transition-colors font-rajdhani text-sm tracking-wider uppercase">
+            Accesorios
+          </Link>
           {isLoading ? (
             <div className="w-8 h-8" />
           ) : user ? (
@@ -94,6 +99,11 @@ export default function AppNavbar({
                     <Link href="/products" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
                       Ver catálogo
                     </Link>
+
+                    <Link href="/accessories" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
+                      Accesorios
+                    </Link>
+                    
                     <Link href="/transactions" className="block px-4 py-3 text-sm font-rajdhani text-[#e8e8e8] hover:bg-[#1a1a1a] hover:text-[#c9a227] transition-colors">
                       Mis transacciones
                     </Link>
