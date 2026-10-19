@@ -8,6 +8,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { EnrollmentStatus } from '../courses/entities/course-enrollment.entity';
+import { AccessoriesService, CreateAccessoryOrderInput } from '../accessories/accessories.service';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller('payments')
 export class PaymentsController {
@@ -15,6 +17,7 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly transactionsService: TransactionsService,
     private readonly coursesService: CoursesService,
+    private readonly accessoriesService: AccessoriesService,
   ) {}
 
   @Post('process/:transactionId')
@@ -113,7 +116,10 @@ export class PaymentsController {
       if (result.externalReference.startsWith('course_')) {
         const enrollmentId = result.externalReference.replace('course_', '');
         await this.coursesService.markEnrollmentPaid(enrollmentId, result.paymentId);
-      } else {
+      }else if (result.externalReference.startsWith('accessory_')) {
+         const orderId = result.externalReference.replace('accessory_', '');
+         await this.confirmAccessoryOrder(orderId, result.paymentId);
+      }else {
         await this.transactionsService.updateStatusBySystem(
         result.externalReference,
         TransactionStatus.ESCROW,
@@ -139,5 +145,55 @@ export class PaymentsController {
     }
 
     return this.transactionsService.resolveDispute(transactionId, req.user.id, body.resolution, body.notes);
+  }
+
+  @Post('process-accessory/:accessoryId')
+  @UseGuards(OptionalJwtAuthGuard)
+  async processAccessoryPayment(
+    @Param('accessoryId') accessoryId: string,
+    @Body() body: CreateAccessoryOrderInput & {
+      token: string;
+      paymentMethodId: string;
+      installments: number;
+      identificationType: string;
+      identificationNumber: string;
+    },
+    @Request() req,
+  ) {
+    const userId = req.user?.id ?? null;
+    const order = await this.accessoriesService.createOrder(accessoryId, body, userId);
+
+    try {
+      const result = await this.paymentsService.processPayment({
+        externalReference: `accessory_${order.id}`,
+        description: `Accesorio ${accessoryId} x${order.quantity}`,
+        amount: Number(order.amount),
+        token: body.token,
+        paymentMethodId: body.paymentMethodId,
+        installments: body.installments,
+        buyerEmail: order.buyerEmail,
+        identificationType: body.identificationType,
+        identificationNumber: body.identificationNumber,
+      });
+
+      if (result.status === 'approved') {
+        const oversold = await this.confirmAccessoryOrder(order.id, result.paymentId);
+        return { ...result, status: oversold ? 'out_of_stock' : result.status, orderId: order.id };
+      }
+      if (result.status === 'rejected') {
+        await this.accessoriesService.cancelOrder(order.id);
+      }
+      return { ...result, orderId: order.id };
+    } catch (error) {
+      await this.accessoriesService.cancelOrder(order.id);
+      throw error;
+    }
+  }
+
+  // Marca la orden como pagada; si se agotó el stock, reembolsa. Devuelve true si hubo reembolso.
+  private async confirmAccessoryOrder(orderId: string, paymentId: string): Promise<boolean> {
+    const { oversold } = await this.accessoriesService.markOrderPaid(orderId, paymentId);
+    if (oversold) await this.paymentsService.refundPayment(paymentId);
+    return oversold;
   }
 }

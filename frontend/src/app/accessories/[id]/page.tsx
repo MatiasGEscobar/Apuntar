@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { MapPin, Truck, Handshake, ShoppingCart } from 'lucide-react';
 import { accessoriesService, Accessory, categoryLabel } from '../../../lib/accessories';
 import AppNavbar from '../../../components/AppNavbar';
+import{ useAuth } from '../../../context/AuthContext';
 
 export default function AccessoryDetailPage() {
   const params = useParams();
@@ -12,7 +13,7 @@ export default function AccessoryDetailPage() {
   const [accessory, setAccessory] = useState<Accessory | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-
+  const { user } = useAuth();
   useEffect(() => {
     const load = async () => {
       try {
@@ -125,13 +126,21 @@ export default function AccessoryDetailPage() {
             </div>
 
             {/* Etapa 3: acá va el checkout */}
-            <button
-              disabled
-              className="btn-tactical w-full text-center flex items-center justify-center gap-3 py-4 opacity-50 cursor-not-allowed"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              COMPRA DISPONIBLE PRÓXIMAMENTE
-            </button>
+            {user && user.id === accessory.sellerId ? (
+              <div className="border border-[#333333] bg-[#111111] p-4 text-center">
+                <p className="text-[#888888] font-rajdhani text-sm">Esta es tu publicación</p>
+              </div>
+            ) : accessory.stock <= 0 ? (
+              <button disabled className="btn-tactical w-full py-4 opacity-50 cursor-not-allowed">SIN STOCK</button>
+            ) : (
+              <button
+                onClick={() => router.push(`/accessories/${accessory.id}/checkout`)}
+                className="btn-tactical w-full text-center flex items-center justify-center gap-3 py-4"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                COMPRAR
+              </button>
+            )}
           </div>
         </div>
       </div>
