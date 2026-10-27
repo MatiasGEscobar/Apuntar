@@ -31,6 +31,18 @@ export class AccessoriesController {
     return this.accessoriesService.findBySeller(req.user.id);
   }
 
+  @Get('seller/sales')
+  @UseGuards(JwtAuthGuard)
+  findMySales(@Request() req) {
+    return this.accessoriesService.findSalesBySeller(req.user.id);
+  }
+  
+  @Patch('orders/:orderId/fulfill')
+  @UseGuards(JwtAuthGuard)
+  fulfillOrder(@Param('orderId') orderId: string, @Request() req) {
+    return this.accessoriesService.fulfillOrder(orderId, req.user.id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() body: Partial<Accessory>, @Request() req) {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, In } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Accessory } from './entities/accessory.entity';
 import { AccessoryOrder, AccessoryOrderStatus, DeliveryMethod } from './entities/accessory-order.entity';
@@ -18,6 +18,11 @@ export interface CreateAccessoryOrderInput {
   shippingPostalCode?: string;
 }
 
+const EDITABLE_FIELDS: (keyof Accessory)[] = [
+  'name', 'description', 'category', 'condition', 'price', 'stock',
+  'images', 'allowsShipping', 'allowsInPerson', 'city', 'province', 'isActive',
+];
+
 @Injectable()
 export class AccessoriesService {
   constructor(
@@ -28,17 +33,108 @@ export class AccessoriesService {
     private usersService: UsersService,
   ) {}
 
+  private sanitize(data: Partial<Accessory>): Partial<Accessory> {
+    const clean: Record<string, any> = {};
+    for (const key of EDITABLE_FIELDS) {
+      if (data[key] !== undefined) clean[key] = data[key];
+    }
+    if (clean.price !== undefined && !(Number(clean.price) > 0)) {
+      throw new BadRequestException('El precio debe ser mayor a 0');
+    }
+    if (
+      clean.stock !== undefined &&
+      !(Number.isInteger(Number(clean.stock)) && Number(clean.stock) >= 0)
+    ) {
+      throw new BadRequestException('El stock debe ser un número entero mayor o igual a 0');
+    }
+    return clean as Partial<Accessory>;
+  }
+  
   async create(data: Partial<Accessory>, sellerId: string): Promise<Accessory> {
-    if (!data.allowsShipping && !data.allowsInPerson) {
+    const clean = this.sanitize(data);
+  
+    if (!clean.name || !clean.description || !clean.category || clean.price === undefined) {
+      throw new BadRequestException('Completá nombre, descripción, categoría y precio');
+    }
+    if (!clean.allowsShipping && !clean.allowsInPerson) {
       throw new BadRequestException('Debés habilitar al menos un método de entrega (envío o en persona)');
     }
-
+  
     const accessory = this.accessoriesRepository.create({
-      ...data,
+      ...clean,
       sellerId,
       isActive: true,
     });
     return this.accessoriesRepository.save(accessory);
+  }
+  
+  async update(id: string, data: Partial<Accessory>, userId: string): Promise<Accessory> {
+    const accessory = await this.findOneRaw(id);
+    if (accessory.sellerId !== userId) {
+      throw new ForbiddenException('No tenés permiso para editar este accesorio');
+    }
+  
+    const clean = this.sanitize(data);
+  
+    const willAllowShipping = clean.allowsShipping ?? accessory.allowsShipping;
+    const willAllowInPerson = clean.allowsInPerson ?? accessory.allowsInPerson;
+    if (!willAllowShipping && !willAllowInPerson) {
+      throw new BadRequestException('Debés habilitar al menos un método de entrega (envío o en persona)');
+    }
+  
+    if (Object.keys(clean).length > 0) {
+      await this.accessoriesRepository.update(id, clean);
+    }
+    return this.findOneRaw(id);
+  }
+  
+  // Si ya tuvo órdenes, se desactiva en vez de borrarse, para no perder el historial de ventas
+  async remove(id: string, userId: string): Promise<{ deleted: boolean }> {
+    const accessory = await this.findOneRaw(id);
+    if (accessory.sellerId !== userId) {
+      throw new ForbiddenException('No tenés permiso para eliminar este accesorio');
+    }
+  
+    const orders = await this.ordersRepository.count({ where: { accessoryId: id } });
+    if (orders > 0) {
+      await this.accessoriesRepository.update(id, { isActive: false });
+      return { deleted: false };
+    }
+  
+    await this.accessoriesRepository.delete(id);
+    return { deleted: true };
+  }
+  
+  async findSalesBySeller(sellerId: string) {
+    const accessories = await this.accessoriesRepository.find({ where: { sellerId } });
+    if (accessories.length === 0) return [];
+  
+    const byId = new Map(accessories.map((a) => [a.id, a]));
+    const orders = await this.ordersRepository.find({
+      where: { accessoryId: In(Array.from(byId.keys())), status: AccessoryOrderStatus.PAID },
+      order: { createdAt: 'DESC' },
+    });
+  
+    return orders.map((o) => ({
+      ...o,
+      accessoryName: byId.get(o.accessoryId)?.name ?? 'Accesorio',
+      accessoryImage: byId.get(o.accessoryId)?.images?.[0] ?? null,
+    }));
+  }
+  
+  async fulfillOrder(orderId: string, sellerId: string): Promise<AccessoryOrder> {
+    const order = await this.findOrder(orderId);
+    const accessory = await this.findOneRaw(order.accessoryId);
+  
+    if (accessory.sellerId !== sellerId) {
+      throw new ForbiddenException('No tenés permiso sobre esta orden');
+    }
+    if (order.status !== AccessoryOrderStatus.PAID) {
+      throw new BadRequestException('Solo se pueden marcar como entregadas las órdenes pagadas');
+    }
+  
+    await this.ordersRepository.update(orderId, { fulfilledAt: new Date() });
+    return this.findOrder(orderId);
   }
 
   async findAll(filters?: { category?: string; search?: string }): Promise<Accessory[]> {
@@ -73,29 +169,7 @@ export class AccessoriesService {
     });
   }
 
-  async update(id: string, data: Partial<Accessory>, userId: string): Promise<Accessory> {
-    const accessory = await this.findOneRaw(id);
-    if (accessory.sellerId !== userId) {
-      throw new ForbiddenException('No tenés permiso para editar este accesorio');
-    }
 
-    const willAllowShipping = data.allowsShipping ?? accessory.allowsShipping;
-    const willAllowInPerson = data.allowsInPerson ?? accessory.allowsInPerson;
-    if (!willAllowShipping && !willAllowInPerson) {
-      throw new BadRequestException('Debés habilitar al menos un método de entrega (envío o en persona)');
-    }
-
-    await this.accessoriesRepository.update(id, data);
-    return this.findOneRaw(id);
-  }
-
-  async remove(id: string, userId: string): Promise<void> {
-    const accessory = await this.findOneRaw(id);
-    if (accessory.sellerId !== userId) {
-      throw new ForbiddenException('No tenés permiso para eliminar este accesorio');
-    }
-    await this.accessoriesRepository.delete(id);
-  }
 
   // Búsqueda sin incrementar vistas (para uso interno: update/remove/checkout)
   private async findOneRaw(id: string): Promise<Accessory> {

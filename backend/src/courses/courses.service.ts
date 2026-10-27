@@ -60,13 +60,16 @@ export class CoursesService {
   }
 
   async decrementSpot(id: string): Promise<Course> {
-    const course = await this.findOne(id);
-    if (course.availableSpots <= 0) {
+      const result = await this.coursesRepository
+      .createQueryBuilder()
+      .update(Course)
+      .set({ availableSpots: () => '"availableSpots" - 1' })
+      .where('id = :id AND "availableSpots" > 0', { id })
+      .execute();
+
+    if (!result.affected) {
       throw new NotFoundException('No hay cupos disponibles');
     }
-    await this.coursesRepository.update(id, {
-      availableSpots: course.availableSpots - 1,
-    });
     return this.findOne(id);
   }
 
@@ -78,6 +81,9 @@ export class CoursesService {
     acceptedTerms: boolean,
   ): Promise<CourseEnrollment> {
     const course = await this.findOne(courseId);
+    if (course.availableSpots <= 0) {
+    throw new BadRequestException('No hay cupos disponibles en este curso');
+  }
 
     if (!acceptedTerms) {
     throw new BadRequestException('Debés aceptar los términos y condiciones del curso');
@@ -120,11 +126,18 @@ export class CoursesService {
   }
 
   async markEnrollmentPaid(id: string, paymentId: string): Promise<CourseEnrollment> {
+      // Solo una llamada logra pasar la inscripción a "paid". Incluye "cancelled" para
+    // que un pago aprobado tarde (después de que el cron limpió la fila) no se pierda.
+    const claim = await this.enrollmentsRepository.update(
+      { id, status: In([EnrollmentStatus.PENDING, EnrollmentStatus.CANCELLED]) },
+      { status: EnrollmentStatus.PAID, paymentId },
+    );
+    
     const enrollment = await this.findEnrollment(id);
-    if (enrollment.status === EnrollmentStatus.PAID) return enrollment; // evita descontar cupo 2 veces
-    await this.enrollmentsRepository.update(id, { status: EnrollmentStatus.PAID, paymentId });
-    await this.decrementSpot(enrollment.courseId);
-    return this.findEnrollment(id);
+      if (claim.affected) {
+      await this.decrementSpot(enrollment.courseId);
+    }
+    return enrollment;
   }
 
   async findEnrollmentsByCourse(courseId: string) {

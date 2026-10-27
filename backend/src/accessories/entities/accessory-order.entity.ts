@@ -64,4 +64,7 @@ export class AccessoryOrder {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fulfilledAt: Date | null; 
 }
